@@ -1,6 +1,5 @@
 import numpy as np
 import os
-from sklearn.model_selection import StratifiedKFold
 
 
 def load_directory(path: str = "data/"):
@@ -19,7 +18,7 @@ def load_directory(path: str = "data/"):
     return X_train, y_train, X_test, y_test
 
 
-def create_kfold_stratfied_cross_validation(
+def create_kfold_stratified_cross_validation(
     X_train: np.ndarray,
     y_train: np.ndarray,
     X_test: np.ndarray,
@@ -82,3 +81,28 @@ def create_kfold_stratfied_cross_validation(
         splits.append((X_train, y_train, X_test, y_test))
 
     return splits
+
+
+class Batcher:
+    """
+    Class for generating mini-batch indices, run at the beginning of every epoch
+    """
+
+    def __init__(self, data_size: int, batch_size: int = 64):
+        """
+        Initialise the batch
+        Args:
+            data_size (int): the total number of samples in the dataset
+            batch_size (int): the number of samples in each batch
+        """
+        self.indices = np.arange(data_size)
+        self.batch_size = batch_size
+
+    def generate_batch_indices(self):
+        """
+        Generates a fresh set of batch indices
+        Returns:
+            List of numpy array
+        """
+        np.random.shuffle(self.indices)
+        return np.array_split(self.indices, self.batch_size)
