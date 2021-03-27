@@ -1,27 +1,21 @@
-import numpy as np
+from src.trainer.trainer import Trainer
+from src.utils.io import load_directory
+from src.network.mlp import MLP
 
-import utils
-from mlp import MLP
+import numpy as np
 
 
 def run():
-    X_train, y_train, X_test, y_test = utils.load_directory("data")
+    X_train, y_train, X_test, y_test = load_directory("data")
+    n_clasess = len(np.unique(y_train))
+    layer_sizes = [(X_train.shape[1], 128), (128, 64), (64, n_clasess)]
+    activations = ["relu", "relu", "relu"]
 
-    # splits = utils.create_kfold_stratified_cross_validation(
-    # X_train, y_train, X_test, y_test, 10
-    # )
-
-    num_features = X_train.shape[1]
-    classes = np.unique(y_train)
-
-    nn = MLP([num_features, 10, len(classes)], [None, "logistic", "tanh"])
-
-    input_data = X_train[:1000, :]
-    output_data = y_train[:1000, :]
-
-    ### Try different learning rate and epochs
-    MSE = nn.fit(input_data, output_data, learning_rate=0.001, epochs=50)
-    print("loss:%f" % MSE[-1])
+    model = MLP(layer_sizes, activations)
+    trainer = Trainer(
+        X_train, y_train, model, 64, 100, "cross_entropy", "momentum", 0.001
+    )
+    trainer.train()
 
 
 if __name__ == "__main__":
