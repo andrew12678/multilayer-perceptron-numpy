@@ -1,28 +1,27 @@
 import numpy as np
-import os
+import math
 
 
-def load_directory(path: str = "data/"):
+def one_hot(y: np.ndarray):
     """
-    Loads the datasets in a directory and returns a tuple of Numpy arrays
+    One-hots an numpy array of labels
     Args:
-        path (str): path to the datasets
+        y (np.ndarray): numpy array of labels
 
     Returns:
-        A tuple of numpy arrays containing the training/testing data
+
     """
-    X_train = np.load(os.path.join(path, "train_data.npy"))
-    y_train = np.load(os.path.join(path, "train_label.npy"))
-    X_test = np.load(os.path.join(path, "test_data.npy"))
-    y_test = np.load(os.path.join(path, "test_label.npy"))
-    return X_train, y_train, X_test, y_test
+
+    n = y.shape[0]
+    max_v = y.max()
+    one_hot_array = np.zeros((n, max_v + 1))
+    one_hot_array[np.arange(n), y.reshape(-1)] = 1
+    return one_hot_array
 
 
 def create_kfold_stratified_cross_validation(
     X_train: np.ndarray,
     y_train: np.ndarray,
-    X_test: np.ndarray,
-    y_test: np.ndarray,
     k: int = 5,
     seed: int = 18,
 ):
@@ -32,17 +31,14 @@ def create_kfold_stratified_cross_validation(
     Args:
         X_train (np.ndarray): the training features
         y_train (np.ndarray): the training labels
-        X_test (np.ndarray): the testing features
-        y_test (np.ndarray): the testing labels
         k (int): the number of cross validation folds
         seed (int): the random seed for reproducibility
 
     Returns:
         A list where containing the k-folds (could be optimised later to only return the indices)
     """
-    X_all = np.concatenate([X_train, X_test])
-    y_all = np.concatenate([y_train, y_test])
-
+    X_all = X_train
+    y_all = y_train
     # Get the number of elements per group
     group_counts = np.bincount(y_all.flatten())
 
@@ -96,7 +92,7 @@ class Batcher:
             batch_size (int): the number of samples in each batch
         """
         self.indices = np.arange(data_size)
-        self.batch_size = batch_size
+        self.count_batches = math.ceil(data_size / batch_size)
 
     def generate_batch_indices(self):
         """
@@ -105,4 +101,4 @@ class Batcher:
             List of numpy array
         """
         np.random.shuffle(self.indices)
-        return np.array_split(self.indices, self.batch_size)
+        return np.array_split(self.indices, self.count_batches)
