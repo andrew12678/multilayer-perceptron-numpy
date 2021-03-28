@@ -25,4 +25,4 @@ class Tanh(Activation):
         return upstream_grad * self.derivative(self.input)
 
     def derivative(self, x):
-        return 1.0 - x ** 2
+        return 1.0 - np.tanh(x) ** 2

@@ -1,5 +1,6 @@
 import numpy as np
 from .activation import Activation
+from ..utils.calculations import sigmoid
 
 
 class Logistic(Activation):
@@ -14,7 +15,7 @@ class Logistic(Activation):
             x (np.ndarray): The array to be applied to Logistic/Sigmoid
         """
         self.input = x
-        return 1.0 / (1.0 + np.exp(-x))
+        return sigmoid(x)
 
     def backward(self, upstream_grad: np.ndarray):
         """
@@ -25,4 +26,4 @@ class Logistic(Activation):
         return upstream_grad * self.derivative(self.input)
 
     def derivative(self, x):
-        return 1.0 / (1.0 + np.exp(-x))
+        return sigmoid(x) / (1.0 - sigmoid(x))
