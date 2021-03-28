@@ -1,4 +1,5 @@
 import numpy as np
+import math
 
 
 def one_hot(y: np.ndarray):
@@ -91,7 +92,7 @@ class Batcher:
             batch_size (int): the number of samples in each batch
         """
         self.indices = np.arange(data_size)
-        self.batch_size = batch_size
+        self.count_batches = math.ceil(data_size / batch_size)
 
     def generate_batch_indices(self):
         """
@@ -100,4 +101,4 @@ class Batcher:
             List of numpy array
         """
         np.random.shuffle(self.indices)
-        return np.array_split(self.indices, self.batch_size)
+        return np.array_split(self.indices, self.count_batches)

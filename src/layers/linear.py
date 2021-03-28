@@ -12,7 +12,7 @@ class Linear(Layer):
         """
         super().__init__()
 
-        # Randomly initialise weights (implement Xavier/He later)
+        # Randomly initialise weights (implement He later and make this a parameter option)
         self.weights = np.random.uniform(
             low=-np.sqrt(6.0 / (n_in + n_out)),
             high=np.sqrt(6.0 / (n_in + n_out)),
