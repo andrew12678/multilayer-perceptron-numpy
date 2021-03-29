@@ -22,8 +22,8 @@ class MLP:
                     "Each layer's output size must be next layer's input size"
                 )
             self.layers.append(Linear(input_size, output_size))
-            self.layers.append(create_activation_layer(act))
-
+            if act:
+                self.layers.append(create_activation_layer(act))
     def forward(self, input: np.ndarray):
         """
         Propagates input through each layer
