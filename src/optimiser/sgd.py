@@ -17,6 +17,10 @@ class SGD(Optimiser):
         self.lr = learning_rate
 
     def step(self):
+
+        # Loop through all layers of MLP
         for layer in self.layers:
+
+            # Update weights and biases
             layer.weights -= layer.grad_W
             layer.biases -= layer.grad_B

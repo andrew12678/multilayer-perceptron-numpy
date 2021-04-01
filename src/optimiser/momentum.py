@@ -33,5 +33,7 @@ class Momentum(Optimiser):
                 self.velocity[idx].biases * self.momentum + self.lr * layer.grad_b
             )
             self.velocity[idx] = Parameter(new_weight_velocity, new_bias_velocity)
+
+            # Update weights & biases
             layer.weights -= new_weight_velocity
             layer.biases -= new_bias_velocity
