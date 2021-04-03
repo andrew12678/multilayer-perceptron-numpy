@@ -24,6 +24,7 @@ class MLP:
             self.layers.append(Linear(input_size, output_size))
             if act:
                 self.layers.append(create_activation_layer(act))
+
     def forward(self, input: np.ndarray):
         """
         Propagates input through each layer

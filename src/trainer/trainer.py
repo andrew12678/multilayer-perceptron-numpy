@@ -16,6 +16,8 @@ class Trainer:
         loss: str,
         optimiser: str,
         learning_rate: float,
+        weight_decay: float = 0,
+        momentum: float = None,
     ):
         self.model = model
         self.X = X
@@ -25,7 +27,11 @@ class Trainer:
         self.n_epochs = n_epochs
         self.loss = create_loss_function(loss)
         self.optimiser = create_optimiser(
-            optimiser, [l for l in model.layers if isinstance(l, Layer)], learning_rate
+            optimiser,
+            [l for l in model.layers if isinstance(l, Layer)],
+            learning_rate,
+            weight_decay,
+            momentum,
         )
 
     def train(self):

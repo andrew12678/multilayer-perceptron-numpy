@@ -20,10 +20,7 @@ def one_hot(y: np.ndarray):
 
 
 def create_kfold_stratified_cross_validation(
-    X_train: np.ndarray,
-    y_train: np.ndarray,
-    k: int = 5,
-    seed: int = 18,
+    X_train: np.ndarray, y_train: np.ndarray, k: int = 5, seed: int = 18
 ):
     """
     Combines the given train-test dataset and creates the k-fold cross validation folds for them without

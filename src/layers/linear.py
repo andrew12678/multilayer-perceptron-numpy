@@ -20,9 +20,7 @@ class Linear(Layer):
         )
 
         # A bias for each output
-        self.biases = np.zeros(
-            n_out,
-        )
+        self.biases = np.zeros(n_out)
 
         # Set gradients as the size of weight
         self.grad_W = np.zeros(self.weights.shape)

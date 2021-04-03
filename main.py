@@ -15,7 +15,16 @@ def run():
 
     model = MLP(layer_sizes, activations)
     trainer = Trainer(
-        X_train, y_train, model, 64, 100, "cross_entropy", "momentum", 0.001
+        X_train,
+        y_train,
+        model,
+        64,
+        100,
+        "cross_entropy",
+        "sgd",
+        0.01,
+        weight_decay=0.0,
+        momentum=0.9,
     )
     trainer.train()
 

@@ -43,7 +43,9 @@ def create_loss_function(loss_name: str):
         raise ValueError(f"Invalid loss name: {loss_name}")
 
 
-def create_optimiser(optimiser_name: str, layers: list, lr: int):
+def create_optimiser(
+    optimiser_name: str, layers: list, lr: int, weight_decay: float, momentum: float
+):
     """
     Creates a optimiser and returns it
     Args:
@@ -53,6 +55,6 @@ def create_optimiser(optimiser_name: str, layers: list, lr: int):
 
     """
     if optimiser_name == "sgd":
-        return SGD(layers, lr)
+        return SGD(layers, lr, weight_decay)
     elif optimiser_name == "momentum":
-        return Momentum(layers, lr)
+        return Momentum(layers, lr, weight_decay, momentum)
