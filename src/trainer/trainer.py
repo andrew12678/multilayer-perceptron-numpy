@@ -29,23 +29,23 @@ class Trainer:
         )
 
     def train(self):
-        for i in range(1, self.n_epochs + 1):
-            print(f"Starting epoch: {i}")
-
+        for epoch in range(self.n_epochs):
             # Zeroing the gradients
             self.model.zero_grad()
             # Get batches indices for this epoch
             batches = self.batcher.generate_batch_indices()
+            acc_loss = 0
             for batch in batches:
                 # Get current batch
                 X_batch, y_batch = self.X[batch], self.y[batch]
                 # Get output from network for batch
                 output = self.model.forward(X_batch)
-
                 loss = self.loss(y_batch, output)
-                print(f"Loss {loss}")
+
                 delta = self.loss.backward()
-
                 self.model.backward(delta)
-
                 self.optimiser.step()
+
+                acc_loss += loss
+            if epoch % 5 == 4:
+                print(f"Epoch: {epoch+1}, loss: {acc_loss / len(batches)}")

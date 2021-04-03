@@ -6,6 +6,8 @@ import numpy as np
 
 
 def run():
+    # Set a random seed to reproduce results
+    np.random.seed(42)
     X_train, y_train, X_test, y_test = load_directory("data")
     n_clasess = len(np.unique(y_train))
     layer_sizes = [(X_train.shape[1], 128), (128, 64), (64, n_clasess)]
