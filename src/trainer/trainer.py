@@ -19,10 +19,10 @@ class Trainer:
         weight_decay: float = 0,
         momentum: float = None,
     ):
-        self.model = model
         self.X = X
-        # Changing y to one_hot
         self.y = one_hot(y)
+        self.model = model
+        # Create batcher object to handle mini-batch creation
         self.batcher = Batcher(self.X.shape[0], batch_size)
         self.n_epochs = n_epochs
         self.loss = create_loss_function(loss)
@@ -47,7 +47,6 @@ class Trainer:
                 # Get output from network for batch
                 output = self.model.forward(X_batch)
                 loss = self.loss(y_batch, output)
-
                 delta = self.loss.backward()
                 self.model.backward(delta)
                 self.optimiser.step()

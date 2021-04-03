@@ -19,41 +19,38 @@ def one_hot(y: np.ndarray):
     return one_hot_array
 
 
-def create_kfold_stratified_cross_validation(
-    X_train: np.ndarray, y_train: np.ndarray, k: int = 5, seed: int = 18
+def create_stratified_kfolds(
+    X_train: np.ndarray, y_train: np.ndarray, k: int = 5
 ):
     """
-    Combines the given train-test dataset and creates the k-fold cross validation folds for them without
-    sklearn
+    Creates k-folds cross validation data given X_train and y_train.
     Args:
         X_train (np.ndarray): the training features
         y_train (np.ndarray): the training labels
         k (int): the number of cross validation folds
-        seed (int): the random seed for reproducibility
 
     Returns:
-        A list where containing the k-folds (could be optimised later to only return the indices)
+        A list containing the data for k-folds
     """
     X_all = X_train
     y_all = y_train
-    # Get the number of elements per group
+    # Get the number of elements per class
     group_counts = np.bincount(y_all.flatten())
 
-    # Gets the original indices of each group
-    # e.g. [2,0,3,1,1] -> [[1],[3,4],[0],[2],[]]
+    # Get a list of indices representing each class, in order of class value.
+    # e.g. if y_all = [0,2,1,1,2] then original_group_indices = [[0], [2,3], [1,4]]
     original_group_indices = np.split(
         y_all.flatten().argsort(), np.cumsum(group_counts)
     )
 
-    # Splits the grouped indices of each element into k
+    # Splits the grouped indices of each element into k subgroups.
     group_fold_indices = []
     for group_count in group_counts:
         group_indices = np.arange(group_count)
-        np.random.seed(seed)
         np.random.shuffle(group_indices)
         group_fold_indices.append(np.array_split(group_indices, k))
 
-    # Generate k-folds with some output as sklearn.StratifiedKFold
+    # Generate k-folds with same output as sklearn.StratifiedKFold
     splits = []
     for fold_index in range(k):
         # For each fold we consider get the relevant group indices we split into k subgroups
