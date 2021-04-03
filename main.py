@@ -24,7 +24,7 @@ def run():
         "sgd",
         learning_rate=0.01,
         weight_decay=0.0,
-        momentum=0.,
+        momentum=0.9,
     )
     trainer.train()
 
