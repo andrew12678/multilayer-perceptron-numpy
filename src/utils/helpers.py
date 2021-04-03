@@ -55,6 +55,4 @@ def create_optimiser(
 
     """
     if optimiser_name == "sgd":
-        return SGD(layers, lr, weight_decay)
-    elif optimiser_name == "momentum":
-        return Momentum(layers, lr, weight_decay, momentum)
+        return SGD(layers, lr, weight_decay, momentum)

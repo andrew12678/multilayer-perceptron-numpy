@@ -22,9 +22,9 @@ def run():
         100,
         "cross_entropy",
         "sgd",
-        0.01,
+        learning_rate=0.01,
         weight_decay=0.0,
-        momentum=0.9,
+        momentum=0.,
     )
     trainer.train()
 
