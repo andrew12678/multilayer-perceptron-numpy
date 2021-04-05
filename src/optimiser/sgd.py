@@ -5,6 +5,7 @@ from collections import namedtuple
 
 Parameter = namedtuple("Parameter", ["weights", "biases"])
 
+
 class SGD(Optimiser):
     def __init__(
         self,
@@ -33,7 +34,7 @@ class SGD(Optimiser):
     def step(self):
         for idx, layer in enumerate(self.layers):
             new_weight_velocity = (
-                self.momentum * self.velocity[idx].weights+ self.lr * layer.grad_W
+                self.momentum * self.velocity[idx].weights + self.lr * layer.grad_W
             )
             new_bias_velocity = (
                 self.momentum * self.velocity[idx].biases + self.lr * layer.grad_b

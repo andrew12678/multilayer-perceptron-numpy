@@ -40,10 +40,10 @@ class Trainer:
     def train(self):
 
         # Loop through designated number of epochs
-        for i in range(1, self.n_epochs + 1):
+        for epoch in range(1, self.n_epochs + 1):
 
             # Display epoch numbers
-            print(f"Starting epoch: {i}")
+            print(f"Starting epoch: {epoch}")
 
             # Zeroing the gradients
             self.model.zero_grad()

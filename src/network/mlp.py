@@ -5,10 +5,12 @@ from ..utils.helpers import create_activation_layer
 
 
 class MLP:
-    def __init__(self,
-                 layer_sizes: List[Tuple],
-                 activation: List[str],
-                 dropout_rates: List[float]):
+    def __init__(
+        self,
+        layer_sizes: List[Tuple],
+        activation: List[str],
+        dropout_rates: List[float],
+    ):
 
         """
         Initialises the layers of the Multilayer Perceptron
@@ -23,7 +25,9 @@ class MLP:
         self.layers = []
 
         # Iterate over all layers and respective activation functions
-        for idx, (layer_size, act, dropout_rate) in enumerate(zip(layer_sizes, activation, dropout_rates)):
+        for idx, (layer_size, act, dropout_rate) in enumerate(
+            zip(layer_sizes, activation, dropout_rates)
+        ):
 
             # Extract input and output dimensions
             input_size, output_size = layer_size
@@ -37,10 +41,14 @@ class MLP:
                 )
 
             # Define current hidden layer and append object to list
-            self.layers.append(Linear(n_in=input_size,
-                                      n_out=output_size,
-                                      activation_fn=act,
-                                      dropout_rate=dropout_rate))
+            self.layers.append(
+                Linear(
+                    n_in=input_size,
+                    n_out=output_size,
+                    activation_fn=act,
+                    dropout_rate=dropout_rate,
+                )
+            )
 
             # Check that activation function type is defined
             if act:

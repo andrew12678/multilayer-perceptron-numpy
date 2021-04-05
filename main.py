@@ -22,25 +22,27 @@ def run():
     # Define dropout rates for all layers
     dropout_rates = [0, 0.5, 0.5]
 
-    # Build multi-layer perceptron model (i.e build model object)
-    model = MLP(layer_sizes=layer_sizes,
-                activation=activations,
-                dropout_rates= dropout_rates)
+    # Create multi-layer perceptron model (i.e build model object)
+    model = MLP(
+        layer_sizes=layer_sizes, activation=activations, dropout_rates=dropout_rates
+    )
 
-    # Builder trainer object (define input data and parameters)
-    trainer = Trainer(X=X_train,
-                      y=y_train,
-                      model=model,
-                      batch_size=64,
-                      n_epochs=10,
-                      loss="cross_entropy",
-                      optimiser="sgd",
-                      learning_rate=0.001,
-                      weight_decay=0.0,
-                    momentum=0.9,
+    # Create trainer object to handle train each epoch (define input data and parameters)
+    trainer = Trainer(
+        X=X_train,
+        y=y_train,
+        model=model,
+        batch_size=64,
+        n_epochs=10,
+        loss="cross_entropy",
+        optimiser="sgd",
+        learning_rate=0.001,
+        weight_decay=0.0,
+        momentum=0.9,
     )
 
     trainer.train()
+
 
 def run_kfolds():
     X_train, y_train, X_test, y_test = load_directory("data")
