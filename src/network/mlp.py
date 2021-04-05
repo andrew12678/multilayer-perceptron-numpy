@@ -48,7 +48,6 @@ class MLP:
                 # Append activation layer to layers list
                 self.layers.append(create_activation_layer(act))
 
-    # Feed-forward for entire network
     def forward(self, input: np.ndarray):
 
         """
