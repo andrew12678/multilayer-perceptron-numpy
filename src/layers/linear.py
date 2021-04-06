@@ -74,7 +74,7 @@ class Linear(Layer):
         self.grad_W = np.zeros(self.weights.shape)
         self.grad_b = np.zeros(self.biases.shape)
 
-        # Set dropout ratio as attribute
+        # Set dropout rate as attribute
         self.dropout_rate = dropout_rate
 
         # Create dropout vector that contains which neurons to switch off
@@ -104,7 +104,7 @@ class Linear(Layer):
         # Calculate the net output of the current layer
         net_output = np.dot(self.input, self.weights) + self.biases
 
-        # Apply dropout and set output of current layer
+        # Set output of current layer
         self.output = net_output
 
         # Return output

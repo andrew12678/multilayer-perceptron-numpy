@@ -25,7 +25,7 @@ def run():
     # Build multi-layer perceptron model (i.e build model object)
     model = MLP(layer_sizes=layer_sizes,
                 activation=activations,
-                dropout_rates= dropout_rates)
+                dropout_rates=dropout_rates)
 
     # Builder trainer object (define input data and parameters)
     trainer = Trainer(X=X_train,
