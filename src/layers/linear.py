@@ -87,19 +87,19 @@ class Linear(Layer):
         self.output = None
 
     # Complete feed-forward pass for current layer
-    def forward(self, X: np.ndarray):
+    def forward(self, x: np.ndarray):
 
         """
         Computes the forward pass of the layer
         Args:
-            X (np.ndarray): the input array
+            x (np.ndarray): the input array
 
         Returns:
 
         """
 
         # Perform dropout/scaling and set input
-        self.input = (X * self.dropout_array) * (1 / (1 - self.dropout_rate))
+        self.input = (x * self.dropout_array) * (1 / (1 - self.dropout_rate))
 
         # Calculate the net output of the current layer
         net_output = np.dot(self.input, self.weights) + self.biases

@@ -25,7 +25,8 @@ def run():
     # Build multi-layer perceptron model (i.e build model object)
     model = MLP(layer_sizes=layer_sizes,
                 activation=activations,
-                dropout_rates=dropout_rates)
+                dropout_rates=dropout_rates,
+                batch_normalisation=True)
 
     # Builder trainer object (define input data and parameters)
     trainer = Trainer(X=X_train,
@@ -35,8 +36,7 @@ def run():
                       n_epochs=10,
                       loss="cross_entropy",
                       optimiser="momentum",
-                      learning_rate=0.001
-    )
+                      learning_rate=0.001)
 
     # Train MLP model
     trainer.train()

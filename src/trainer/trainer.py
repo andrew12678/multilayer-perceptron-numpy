@@ -61,10 +61,10 @@ class Trainer:
                 # Display loss
                 print(f"Loss {loss}")
 
-                # Perform backward propagation and get sensitivity for all layers
+                # Perform backward propagation and get sensitivity for output layer
                 delta = self.loss.backward()
 
-                #
+                # Perform backward propagation for all layers
                 self.model.backward(delta)
 
                 # Update weights

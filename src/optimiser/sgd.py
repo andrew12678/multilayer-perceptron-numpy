@@ -1,6 +1,8 @@
 from .optimiser import Optimiser
 from typing import List
 from ..layers.linear import Linear
+from ..layers.batch_norm import BatchNorm
+
 
 
 class SGD(Optimiser):
@@ -16,11 +18,24 @@ class SGD(Optimiser):
         super().__init__(layers)
         self.lr = learning_rate
 
+    # Step function that optimises all layers
     def step(self):
 
         # Loop through all layers of MLP
         for layer in self.layers:
 
-            # Update weights and biases
-            layer.weights -= layer.grad_W
-            layer.biases -= layer.grad_B
+            # Check if layer is a batch normalisation layer
+            if isinstance(layer, BatchNorm):
+
+                # Update scale and shift parameters
+                layer.gamma -= self.lr * layer.grad_gamma
+                layer.beta -= self.lr * layer.grad_beta
+
+            # If layer is any other type (e.g. linear, activation, etc.)
+            else:
+
+                # Update weights and biases
+                layer.weights -= self.lr * layer.grad_W
+                layer.biases -= self.lr * layer.grad_b
+
+
