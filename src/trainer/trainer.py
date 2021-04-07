@@ -6,6 +6,8 @@ from ..utils.helpers import create_loss_function, create_optimiser
 
 
 class Trainer:
+
+    # Initialise trainer class with network architecture and specifications
     def __init__(
         self,
         X: np.ndarray,
@@ -34,21 +36,42 @@ class Trainer:
             momentum,
         )
 
+    # Primary method that trains the network
     def train(self):
-        for epoch in range(self.n_epochs):
+
+        # Loop through designated number of epochs
+        for epoch in range(1, self.n_epochs + 1):
+
+            # Display epoch numbers
+            print(f"Starting epoch: {epoch}")
+
             # Zeroing the gradients
             self.model.zero_grad()
+
             # Get batches indices for this epoch
             batches = self.batcher.generate_batch_indices()
             acc_loss = 0
             for batch in batches:
+
                 # Get current batch
                 X_batch, y_batch = self.X[batch], self.y[batch]
+
                 # Get output from network for batch
                 output = self.model.forward(X_batch)
+
+                # Calculate loss for current batch
                 loss = self.loss(y_batch, output)
+
+                # Display loss
+                print(f"Loss {loss}")
+
+                # Perform backward propagation and get sensitivity for all layers
                 delta = self.loss.backward()
+
+                #
                 self.model.backward(delta)
+
+                # Update weights
                 self.optimiser.step()
 
                 acc_loss += loss

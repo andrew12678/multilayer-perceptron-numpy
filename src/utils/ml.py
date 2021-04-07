@@ -19,9 +19,7 @@ def one_hot(y: np.ndarray):
     return one_hot_array
 
 
-def create_stratified_kfolds(
-    X_train: np.ndarray, y_train: np.ndarray, k: int = 5
-):
+def create_stratified_kfolds(X_train: np.ndarray, y_train: np.ndarray, k: int = 5):
     """
     Creates k-folds cross validation data given X_train and y_train.
     Args:
