@@ -3,17 +3,19 @@ import numpy as np
 
 
 class BatchNorm(Layer):
-    def __init__(self,
-                 n_in: int):
+    def __init__(self, n_in: int, momentum: float = 0.1):
 
         """
         Sets up a batch normalisation layer taking in n_in inputs and producing the same no. of outputs
         Args:
             n_in (int): number of input neurons and output neurons
+            momentum (float): the BatchNorm momentum for the running mean and variances, don't confuse with the SGD
+                              momentum
         """
 
-        # Make superclass
         super().__init__()
+
+        self.momentum = momentum
 
         # Initialise input & output attributes to store later
         self.input = None
@@ -24,8 +26,12 @@ class BatchNorm(Layer):
 
         # Initialise scale (gamma) and shift (beta) parameters
         # NOTE: weights = gamma & biases = beta for continuity in updates via optimiser
-        self.weights = np.ones(n_in,)
-        self.biases = np.zeros(n_in,)
+        self.weights = np.ones(
+            n_in,
+        )
+        self.biases = np.zeros(
+            n_in,
+        )
 
         # Set gradients as the size of respective arrays
         self.grad_W = np.zeros(self.weights.shape)
@@ -36,6 +42,12 @@ class BatchNorm(Layer):
         self.batch_variances = None
         self.batch_norm = None
         self.batch_size = None
+
+        self.running_mean = np.zeros(n_in)
+        self.running_var = np.zeros(n_in)
+
+        # If mode == 'train' we do the forward pass with the training calculations else if 'test' then we don't
+        self.mode = "train"
 
     # Complete feed-forward pass for current layer
     def forward(self, x: np.ndarray):
@@ -49,24 +61,44 @@ class BatchNorm(Layer):
 
         """
 
-        # Store raw input for current batch-norm layer
-        self.input = x
-        self.batch_size = self.input.shape[0]
+        if self.mode == "train":
+            # Store raw input for current batch-norm layer
+            self.input = x
+            self.batch_size = self.input.shape[0]
 
-        # Get means for each feature/column
-        self.batch_means = self.input.mean(axis=0)
+            # Get means for each feature/column
+            self.batch_means = self.input.mean(axis=0)
 
-        # Get standard deviations for each feature/column
-        self.batch_variances = self.input.var(axis=0)
+            # Get variances for each feature/column, np.var does population variance so we aren't at risk
+            self.batch_variances = self.input.var(axis=0)
 
-        # Normalise batch array column-wise
-        self.batch_norm = (self.input - self.batch_means) / np.sqrt(self.batch_variances + self.epsilon)
+            # Normalise batch array column-wise
+            self.batch_norm = (self.input - self.batch_means) / np.sqrt(
+                self.batch_variances + self.epsilon
+            )
 
-        # Perform linear transform and store as output
-        self.output = (self.weights * self.batch_norm) + self.biases
+            # Perform linear transform and store as output
+            self.output = (self.weights * self.batch_norm) + self.biases
 
-        # Return normalised batch array
-        return self.output
+            # Saving the running mean and variance with BN momentum
+            self.running_mean = (
+                self.momentum * self.running_mean
+                + (1.0 - self.momentum) * self.batch_means
+            )
+            self.running_var = (
+                self.momentum * self.running_var
+                + (1.0 - self.momentum) * self.batch_variances
+            )
+
+            # Return normalised batch array
+            return self.output
+        elif self.mode == "test":
+            # Using the running mean and variances
+            x_hat = (x - self.running_mean) / np.sqrt(self.running_var + self.epsilon)
+
+            # Using gamma and beta and don't save this variable
+            output = self.weights * x_hat + self.biases
+            return output
 
     # Complete backward pass for current batch-norm layer
     def backward(self, upstream_grad: np.ndarray):
@@ -84,17 +116,23 @@ class BatchNorm(Layer):
 
         # Calculate the loss/variance gradient for the current layer (shape: 1, n_in)
         a = dLoss_dNorm * (self.input - self.batch_means)
-        b = -((self.batch_variances + self.epsilon)**(-3/2))/2
+        b = -((self.batch_variances + self.epsilon) ** (-3 / 2)) / 2
         dLoss_dVariance = np.sum(a * b, axis=0)
 
         # Calculate the loss/mean gradient for the current layer (shape: 1, n_in)
-        a = np.sum(dLoss_dNorm * (-1/np.sqrt(self.batch_variances + self.epsilon)), axis=0)
-        b = dLoss_dVariance * (np.sum(-2 * (self.input - self.batch_means), axis=0))/self.batch_size
+        a = np.sum(
+            dLoss_dNorm * (-1 / np.sqrt(self.batch_variances + self.epsilon)), axis=0
+        )
+        b = (
+            dLoss_dVariance
+            * (np.sum(-2 * (self.input - self.batch_means), axis=0))
+            / self.batch_size
+        )
         dLoss_dMean = a + b
 
         # Calculate the loss/input gradient for the current layer (shape: M, n_in)
-        a = dLoss_dNorm * (1/np.sqrt(self.batch_variances + self.epsilon))
-        b = dLoss_dVariance * (2 * (self.input - self.batch_means)/self.batch_size)
+        a = dLoss_dNorm * (1 / np.sqrt(self.batch_variances + self.epsilon))
+        b = dLoss_dVariance * (2 * (self.input - self.batch_means) / self.batch_size)
         c = dLoss_dMean * (1 / self.batch_size)
         dLoss_dInput = a + b + c
 

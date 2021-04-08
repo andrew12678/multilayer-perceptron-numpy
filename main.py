@@ -23,10 +23,11 @@ def run():
     dropout_rates = [0, 0.5, 0.5]
 
     # Create multi-layer perceptron model (i.e build model object)
-    model = MLP(layer_sizes=layer_sizes, 
-                activation=activations, 
-                dropout_rates=dropout_rates, 
-                batch_normalisation=True
+    model = MLP(
+        layer_sizes=layer_sizes,
+        activation=activations,
+        dropout_rates=dropout_rates,
+        batch_normalisation=True,
     )
 
     # Create trainer object to handle train each epoch (define input data and parameters)

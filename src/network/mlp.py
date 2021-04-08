@@ -19,7 +19,6 @@ class MLP:
         Args:
             layer_sizes (List[Tuple]): layers of the network as tuples (in, out)
             activation (List[str): activation for each layer
-            loss (str): the loss used as the criterion of the network
             dropout_rates (List[float]): the dropout rates for each layer
             batch_normalisation (bool): indicates whether to use batch normalisation or not (default True)
         """
