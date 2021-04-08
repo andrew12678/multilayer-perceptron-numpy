@@ -24,18 +24,8 @@ class SGD(Optimiser):
         # Loop through all layers of MLP
         for layer in self.layers:
 
-            # Check if layer is a batch normalisation layer
-            if isinstance(layer, BatchNorm):
-
-                # Update scale and shift parameters
-                layer.gamma -= self.lr * layer.grad_gamma
-                layer.beta -= self.lr * layer.grad_beta
-
-            # If layer is any other type (e.g. linear, activation, etc.)
-            else:
-
-                # Update weights and biases
-                layer.weights -= self.lr * layer.grad_W
-                layer.biases -= self.lr * layer.grad_b
+            # Update weights and biases
+            layer.weights -= self.lr * layer.grad_W
+            layer.biases -= self.lr * layer.grad_b
 
 
