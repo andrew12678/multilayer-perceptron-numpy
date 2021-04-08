@@ -23,12 +23,13 @@ class BatchNorm(Layer):
         self.epsilon = 1e-9
 
         # Initialise scale (gamma) and shift (beta) parameters
-        self.gamma = np.ones(n_in,)
-        self.beta = np.zeros(n_in,)
+        # NOTE: weights = gamma & biases = beta for continuity in updates via optimiser
+        self.weights = np.ones(n_in,)
+        self.biases = np.zeros(n_in,)
 
         # Set gradients as the size of respective arrays
-        self.grad_gamma = np.zeros(self.gamma.shape)
-        self.grad_beta = np.zeros(self.beta.shape)
+        self.grad_W = np.zeros(self.weights.shape)
+        self.grad_b = np.zeros(self.biases.shape)
 
         # Initialise batch normalisation metrics
         self.batch_means = None
@@ -62,7 +63,7 @@ class BatchNorm(Layer):
         self.batch_norm = (self.input - self.batch_means) / np.sqrt(self.batch_variances + self.epsilon)
 
         # Perform linear transform and store as output
-        self.output = (self.gamma * self.batch_norm) + self.beta
+        self.output = (self.weights * self.batch_norm) + self.biases
 
         # Return normalised batch array
         return self.output
@@ -79,7 +80,7 @@ class BatchNorm(Layer):
         """
 
         # Calculate the loss/norm gradient for the entire layer (shape: M, n_out)
-        dLoss_dNorm = upstream_grad * self.gamma
+        dLoss_dNorm = upstream_grad * self.weights
 
         # Calculate the loss/variance gradient for the current layer (shape: 1, n_in)
         a = dLoss_dNorm * (self.input - self.batch_means)
@@ -104,10 +105,10 @@ class BatchNorm(Layer):
         dLoss_dBeta = np.sum(upstream_grad, axis=0)
 
         # Update gamma/scale parameter
-        self.grad_gamma = dLoss_dGamma
+        self.grad_W = dLoss_dGamma
 
         # Update gamma/scale parameter
-        self.grad_beta = dLoss_dBeta
+        self.grad_b = dLoss_dBeta
 
         # Calculate sensitivity/delta array
         delta = dLoss_dInput
@@ -119,5 +120,5 @@ class BatchNorm(Layer):
     def zero_grad(self):
 
         # Initialise empty gradient arrays
-        self.grad_gamma = np.zeros(self.gamma.shape)
-        self.grad_beta = np.zeros(self.beta.shape)
+        self.grad_W = np.zeros(self.weights.shape)
+        self.grad_b = np.zeros(self.biases.shape)
