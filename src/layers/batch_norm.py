@@ -4,14 +4,12 @@ import numpy as np
 
 class BatchNorm(Layer):
     def __init__(self,
-                 n_in: int,
-                 stability_constant: float = 1e-9):
+                 n_in: int):
 
         """
         Sets up a batch normalisation layer taking in n_in inputs and producing the same no. of outputs
         Args:
             n_in (int): number of input neurons and output neurons
-            stability_constant (float): small number that prevents division by zero
         """
 
         # Make superclass
@@ -22,9 +20,9 @@ class BatchNorm(Layer):
         self.output = None
 
         # Initialise stability constant to prevent dividing by zero
-        self.epsilon = stability_constant
+        self.epsilon = 1e-9
 
-        # Initialise scale and shift parameters
+        # Initialise scale (gamma) and shift (beta) parameters
         self.gamma = np.ones(n_in,)
         self.beta = np.zeros(n_in,)
 
@@ -46,18 +44,19 @@ class BatchNorm(Layer):
         Args:
             x (np.ndarray): the input array
         Returns:
+            output array
 
         """
 
         # Store raw input for current batch-norm layer
         self.input = x
-        self.batch_size = np.shape(self.input)[0]
+        self.batch_size = self.input.shape[0]
 
         # Get means for each feature/column
-        self.batch_means = np.mean(self.input, axis=0)
+        self.batch_means = self.input.mean(axis=0)
 
         # Get standard deviations for each feature/column
-        self.batch_variances = np.std(self.input, axis=0)
+        self.batch_variances = self.input.var(axis=0)
 
         # Normalise batch array column-wise
         self.batch_norm = (self.input - self.batch_means) / np.sqrt(self.batch_variances + self.epsilon)
@@ -75,7 +74,6 @@ class BatchNorm(Layer):
         Computes the backward pass of the layer
         Args:
             upstream_grad (np.ndarray): the gradient from the upstream for each batch sample (rows) and output (cols)
-
         Returns:
 
         """
