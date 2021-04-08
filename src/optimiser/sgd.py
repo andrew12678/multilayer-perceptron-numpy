@@ -6,13 +6,13 @@ from ..layers.batch_norm import BatchNorm
 
 
 class SGD(Optimiser):
-    def __init__(self, layers: List[Linear], learning_rate: float):
+    def __init__(self, layers: List, learning_rate: float):
         """
         Updates the parameters at the end of each batch in SGD fashion
         Args:
-            layers (List[Linear]): List of parameters holding layers (making the assumption that we are working with
-                                    linear layers but if this were more general we would make a "Parameters" class that
-                                    could be updated unique for each instance
+            layers (List): List of parameters holding layers (making the assumption that we are working with
+                           linear layers but if this were more general we would make a "Parameters" class that
+                           could be updated unique for each instance
             learning_rate (float): the learning rate of the optimiser
         """
         super().__init__(layers)
