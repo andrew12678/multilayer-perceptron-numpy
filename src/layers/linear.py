@@ -3,11 +3,9 @@ import numpy as np
 
 
 class Linear(Layer):
-    def __init__(self,
-                 n_in: int,
-                 n_out: int,
-                 activation_fn: str,
-                 dropout_rate: float = 0):
+    def __init__(
+        self, n_in: int, n_out: int, activation_fn: str, dropout_rate: float = 0
+    ):
 
         """
         Sets up a linear layer taking in n_in inputs and outputs n_out outputs
@@ -22,7 +20,7 @@ class Linear(Layer):
         super().__init__()
 
         # Check if Xavier initialisation (Sigmoid/Logistic)
-        if activation_fn == 'logistic':
+        if activation_fn == "logistic":
 
             # Randomly initialise weights according to Xavier
             self.weights = np.random.uniform(
@@ -32,17 +30,20 @@ class Linear(Layer):
             )
 
         # Check if Xavier initialisation (Tanh)
-        elif activation_fn == 'tanh':
+        elif activation_fn == "tanh":
 
             # Initialise Xavier weights and multiply by 4
-            self.weights = np.random.uniform(
-                low=-np.sqrt(6.0 / (n_in + n_out)),
-                high=np.sqrt(6.0 / (n_in + n_out)),
-                size=(n_in, n_out),
-            ) * 4
+            self.weights = (
+                np.random.uniform(
+                    low=-np.sqrt(6.0 / (n_in + n_out)),
+                    high=np.sqrt(6.0 / (n_in + n_out)),
+                    size=(n_in, n_out),
+                )
+                * 4
+            )
 
         # Check if He initialisation (ReLU & LReLU)
-        elif activation_fn == 'relu' or activation_fn == 'leaky_relu':
+        elif activation_fn == "relu" or activation_fn == "leaky_relu":
 
             # Initialise weights using Kaiming uniform distribution
             self.weights = np.random.uniform(
@@ -65,10 +66,14 @@ class Linear(Layer):
         else:
 
             # Raise exception indicating that initialisation method is unknown
-            raise ValueError('Activation function not recognised for weight initialisation.')
+            raise ValueError(
+                "Activation function not recognised for weight initialisation."
+            )
 
         # A bias for each output/neuron
-        self.biases = np.zeros(n_out, )
+        self.biases = np.zeros(
+            n_out,
+        )
 
         # Set gradients as the size of respective arrays
         self.grad_W = np.zeros(self.weights.shape)
@@ -78,9 +83,7 @@ class Linear(Layer):
         self.dropout_rate = dropout_rate
 
         # Create dropout vector that contains which neurons to switch off
-        self.dropout_array = np.random.binomial(size=n_in,
-                                                n=1,
-                                                p=1 - dropout_rate)
+        self.dropout_array = np.random.binomial(size=n_in, n=1, p=1 - dropout_rate)
 
         # Initialise input & output attributes to store later
         self.input = None

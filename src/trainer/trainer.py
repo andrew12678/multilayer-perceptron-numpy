@@ -18,35 +18,39 @@ class Trainer:
         loss: str,
         optimiser: str,
         learning_rate: float,
+        weight_decay: float = 0,
+        momentum: float = None,
     ):
-
-        # Set inputs as attributes
-        self.model = model
         self.X = X
-        self.y = one_hot(y) # Changing y to one_hot
+        self.y = one_hot(y)
+        self.model = model
+        # Create batcher object to handle mini-batch creation
         self.batcher = Batcher(self.X.shape[0], batch_size)
         self.n_epochs = n_epochs
         self.loss = create_loss_function(loss)
-        self.optimiser = create_optimiser(optimiser,
-                                          [l for l in model.layers if isinstance(l, Layer)],
-                                          learning_rate)
+        self.optimiser = create_optimiser(
+            optimiser,
+            [l for l in model.layers if isinstance(l, Layer)],
+            learning_rate,
+            weight_decay,
+            momentum,
+        )
 
     # Primary method that trains the network
     def train(self):
 
         # Loop through designated number of epochs
-        for i in range(1, self.n_epochs + 1):
+        for epoch in range(1, self.n_epochs + 1):
 
             # Display epoch numbers
-            print(f"Starting epoch: {i}")
+            print(f"Starting epoch: {epoch}")
 
             # Zeroing the gradients
             self.model.zero_grad()
 
             # Get batches indices for this epoch
             batches = self.batcher.generate_batch_indices()
-
-            # Loop through all batches
+            acc_loss = 0
             for batch in batches:
 
                 # Get current batch
@@ -69,3 +73,7 @@ class Trainer:
 
                 # Update weights
                 self.optimiser.step()
+
+                acc_loss += loss
+            if epoch % 5 == 4:
+                print(f"Epoch: {epoch+1}, loss: {acc_loss / len(batches)}")
