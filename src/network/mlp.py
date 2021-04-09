@@ -1,6 +1,7 @@
 import numpy as np
 from typing import List, Tuple
 from ..layers.linear import Linear
+from ..layers.batch_norm import BatchNorm
 from ..utils.helpers import create_activation_layer
 
 
@@ -10,6 +11,7 @@ class MLP:
         layer_sizes: List[Tuple],
         activation: List[str],
         dropout_rates: List[float],
+        batch_normalisation: bool = True,
     ):
 
         """
@@ -17,8 +19,8 @@ class MLP:
         Args:
             layer_sizes (List[Tuple]): layers of the network as tuples (in, out)
             activation (List[str): activation for each layer
-            loss (str): the loss used as the criterion of the network
             dropout_rates (List[float]): the dropout rates for each layer
+            batch_normalisation (bool): indicates whether to use batch normalisation or not (default True)
         """
 
         # Initialise empty list to append hidden layer objects to
@@ -49,6 +51,12 @@ class MLP:
                     dropout_rate=dropout_rate,
                 )
             )
+
+            # Check if batch normalisation is to be used
+            if batch_normalisation:
+
+                # Append batch normalisation layer to layers list
+                self.layers.append(BatchNorm(n_in=output_size))
 
             # Check that activation function type is defined
             if act:

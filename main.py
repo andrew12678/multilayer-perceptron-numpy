@@ -24,7 +24,10 @@ def run():
 
     # Create multi-layer perceptron model (i.e build model object)
     model = MLP(
-        layer_sizes=layer_sizes, activation=activations, dropout_rates=dropout_rates
+        layer_sizes=layer_sizes,
+        activation=activations,
+        dropout_rates=dropout_rates,
+        batch_normalisation=True,
     )
 
     # Create trainer object to handle train each epoch (define input data and parameters)
@@ -41,6 +44,7 @@ def run():
         momentum=0.9,
     )
 
+    # Train model
     trainer.train()
 
 
