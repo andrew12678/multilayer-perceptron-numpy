@@ -11,10 +11,12 @@ def run():
     X_train, y_train, X_test, y_test = load_directory("data")
 
     # Define the number of classes
-    n_clasess = len(np.unique(y_train))
+    n_classes = len(np.unique(y_train))
 
     # Define layers in network (input_dim, output_dim)
-    layer_sizes = [(X_train.shape[1], 128), (128, 64), (64, n_clasess)]
+    layer_sizes = [(X_train.shape[1], 128),
+                   (128, 64),
+                   (64, n_classes)]
 
     # Define activation functions for each layer
     activations = ["relu", "relu", None]
@@ -45,14 +47,26 @@ def run():
     )
 
     # Train model
-    trainer.train()
+    trained_model = trainer.train()
+
+    # Test model
+    trainer.test(
+        X=X_test,
+        y=y_test
+    )
 
 
 def run_kfolds():
+
+    # Load training and test data
     X_train, y_train, X_test, y_test = load_directory("data")
+
+    # Get number of classes
     n_classes = len(np.unique(y_train))
 
+    # Define number of cross-validation folds
     num_folds = 5
+
     # At some point we will do a search over some of these, and justify the values of others theoretically.
     batch_size = 64
     n_epochs = 5
@@ -98,5 +112,5 @@ def run_kfolds():
 if __name__ == "__main__":
     # Set a random seed to reproduce results
     np.random.seed(42)
-    # run()
-    run_kfolds()
+    run()
+    #run_kfolds()
