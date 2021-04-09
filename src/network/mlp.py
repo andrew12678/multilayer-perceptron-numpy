@@ -26,6 +26,9 @@ class MLP:
         # Initialise empty list to append hidden layer objects to
         self.layers = []
 
+        # Initialise model in training mode
+        self.training = True
+
         # Iterate over all layers and respective activation functions
         for idx, (layer_size, act, dropout_rate) in enumerate(
             zip(layer_sizes, activation, dropout_rates)
@@ -39,7 +42,7 @@ class MLP:
 
                 # Raise error
                 raise ValueError(
-                    "Each layer's output size must be next layer's input size"
+                    "Each layer's output size must be next layer's input size."
                 )
 
             # Define current hidden layer and append object to list
@@ -52,8 +55,8 @@ class MLP:
                 )
             )
 
-            # Check if batch normalisation is to be used
-            if batch_normalisation:
+            # Check if batch normalisation is to be used and if before final layer
+            if batch_normalisation and idx < len(layer_sizes) - 1:
 
                 # Append batch normalisation layer to layers list
                 self.layers.append(BatchNorm(n_in=output_size))
@@ -64,6 +67,7 @@ class MLP:
                 # Append activation layer to layers list
                 self.layers.append(create_activation_layer(act))
 
+    # Complete forward pass of the neural network
     def forward(self, input: np.ndarray):
 
         """
@@ -87,7 +91,7 @@ class MLP:
         # Return output array of current layer
         return output
 
-    # Back-propogation for all layers
+    # Back-propagation for all layers
     def backward(self, upstream_grad):
 
         """
@@ -105,7 +109,44 @@ class MLP:
             # Perform backward pass on current layer, extracting current propagated sensitivity
             delta = layer.backward(delta)
 
+    # Initialise gradients for gradient descent
     def zero_grad(self):
+
+        # Loop through all layers
         for layer in self.layers:
+
+            # Check if current layer has the zero_grad attribute
             if hasattr(layer, "zero_grad"):
+
+                # Initialise gradients
                 layer.zero_grad()
+
+    # Set model mode to training
+    def train(self):
+
+        # Set model mode to training
+        self.training = True
+
+        # Loop through all layers
+        for layer in self.layers:
+
+            # Check if current layer has training attribute
+            if hasattr(layer, 'training'):
+
+                # Set layer mode to model mode (training)
+                layer.training = self.training
+
+    # Set model mode to testing
+    def test(self):
+
+        # Set model mode to testing
+        self.training = False
+
+        # Loop through all layers
+        for layer in self.layers:
+
+            # Check if current layer has training attribute
+            if hasattr(layer, 'training'):
+
+                # Set layer mode to model mode (testing)
+                layer.training = self.training
