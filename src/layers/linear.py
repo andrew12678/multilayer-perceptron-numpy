@@ -67,7 +67,7 @@ class Linear(Layer):
 
             # Raise exception indicating that initialisation method is unknown
             raise ValueError(
-                "Activation function not recognised for weight initialisation."
+                f"'{activation_fn}' is not a recognised activation function for weight initialisation."
             )
 
         # A bias for each output/neuron
@@ -83,11 +83,14 @@ class Linear(Layer):
         self.dropout_rate = dropout_rate
 
         # Create dropout vector that contains which neurons to switch off
-        self.dropout_array = np.random.binomial(size=n_in, n=1, p=1 - dropout_rate)
+        self.dropout_mask = np.random.binomial(size=n_in, n=1, p=1 - dropout_rate)
 
         # Initialise input & output attributes to store later
         self.input = None
         self.output = None
+
+        # Initialise layer in training mode
+        self.training = True
 
     # Complete feed-forward pass for current layer
     def forward(self, x: np.ndarray):
@@ -95,14 +98,22 @@ class Linear(Layer):
         """
         Computes the forward pass of the layer
         Args:
-            x (np.ndarray): the input array
-
+            x (np.ndarray): the input array for current batch (shape: batch size, features)
         Returns:
-
+            output (np.ndarray): net output of the linear transformation (pre-activation)
         """
 
-        # Perform dropout/scaling and set input
-        self.input = (x * self.dropout_array) * (1 / (1 - self.dropout_rate))
+        # Check if currently training
+        if self.training:
+
+            # Perform dropout/scaling and set input
+            self.input = (x * self.dropout_mask) * (1 / (1 - self.dropout_rate))
+
+        # Check if being used for testing/inference
+        else:
+
+            # Use standard network with no dropout/scaling
+            self.input = x
 
         # Calculate the net output of the current layer
         net_output = np.dot(self.input, self.weights) + self.biases
@@ -134,7 +145,7 @@ class Linear(Layer):
         # Calculate sensitivity/delta array
         delta = np.dot(upstream_grad, self.weights.T)
 
-        # Return sensitivity/delta and dropout
+        # Return sensitivity/delta for backwards propagation of the error
         return delta
 
     # Initialise empty gradient arrays for weights and bias

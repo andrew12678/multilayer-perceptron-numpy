@@ -3,23 +3,24 @@ import numpy as np
 
 
 class BatchNorm(Layer):
-    def __init__(self, n_in: int, momentum: float = 0.1):
+    def __init__(self, n_in: int, momentum_ma: float = 0.1):
 
         """
         Sets up a batch normalisation layer taking in n_in inputs and producing the same no. of outputs
         Args:
             n_in (int): number of input neurons and output neurons
-            momentum (float): the BatchNorm momentum for the running mean and variances, don't confuse with the SGD
+            momentum_ma (float): the BatchNorm momentum for the running mean and variances, don't confuse with the SGD
                               momentum
         """
 
         super().__init__()
 
-        self.momentum = momentum
-
         # Initialise input & output attributes to store later
         self.input = None
         self.output = None
+
+        # Store momentum for moving average during inference
+        self.momentum = momentum_ma
 
         # Initialise stability constant to prevent dividing by zero
         self.epsilon = 1e-9
@@ -46,8 +47,8 @@ class BatchNorm(Layer):
         self.running_mean = np.zeros(n_in)
         self.running_var = np.zeros(n_in)
 
-        # If mode == 'train' we do the forward pass with the training calculations else if 'test' then we don't
-        self.mode = "train"
+        # Set mode (train/test)
+        self.training = True
 
     # Complete feed-forward pass for current layer
     def forward(self, x: np.ndarray):
@@ -58,10 +59,11 @@ class BatchNorm(Layer):
             x (np.ndarray): the input array
         Returns:
             output array
-
         """
 
-        if self.mode == "train":
+        # Check if model is being trained
+        if self.training:
+
             # Store raw input for current batch-norm layer
             self.input = x
             self.batch_size = self.input.shape[0]
@@ -92,12 +94,17 @@ class BatchNorm(Layer):
 
             # Return normalised batch array
             return self.output
-        elif self.mode == "test":
-            # Using the running mean and variances
+
+        # Check if model is being tested
+        elif not self.training:
+
+            # Normalise using the running mean and variances
             x_hat = (x - self.running_mean) / np.sqrt(self.running_var + self.epsilon)
 
             # Using gamma and beta and don't save this variable
             output = self.weights * x_hat + self.biases
+
+            # Return normalised output for inference
             return output
 
     # Complete backward pass for current batch-norm layer
