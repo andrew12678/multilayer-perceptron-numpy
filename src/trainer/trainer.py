@@ -106,7 +106,7 @@ class Trainer:
         return self.model
 
     # Secondary method that evaluates the network performance on a separate test dataset
-    def test(self, X: np.ndarray, y: np.ndarray):
+    def validation(self, X: np.ndarray, y: np.ndarray):
 
         # Ensure model mode is set to testing
         self.model.test()

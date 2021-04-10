@@ -50,7 +50,7 @@ def run():
     trained_model = trainer.train()
 
     # Test model
-    trainer.test(
+    trainer.validation(
         X=X_test,
         y=y_test
     )
@@ -116,10 +116,10 @@ def run_kfolds():
 
         # Perform validation
         # Extract validation loss and predicted labels
-        results = trainer.test(
-                        X=X_val_k,
-                        y=y_val_k
-                  )
+        results = trainer.validation(
+            X=X_val_k,
+            y=y_val_k
+        )
 
         # Get model predictions for validation set
         #fold_preds = model.forward(X_val_k)
