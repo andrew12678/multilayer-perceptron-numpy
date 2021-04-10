@@ -82,20 +82,30 @@ class Batcher:
     """
 
     def __init__(self, data_size: int, batch_size: int = 64):
+
         """
         Initialise the batch
         Args:
             data_size (int): the total number of samples in the dataset
             batch_size (int): the number of samples in each batch
         """
+
+        # Create ordered index array for all samples in dataset
         self.indices = np.arange(data_size)
+
+        # Get the number of batches to make
         self.count_batches = math.ceil(data_size / batch_size)
 
     def generate_batch_indices(self):
+
         """
         Generates a fresh set of batch indices
         Returns:
             List of numpy array
         """
+
+        # Randomly shuffle indices order
         np.random.shuffle(self.indices)
+
+        # Return split arrays containing indices for each batch
         return np.array_split(self.indices, self.count_batches)
