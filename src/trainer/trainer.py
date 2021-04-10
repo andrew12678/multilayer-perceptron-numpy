@@ -31,9 +31,10 @@ class Trainer:
         self.y = one_hot(y)
         self.model = model
         self.n_epochs = n_epochs
+        self.batch_size = batch_size
 
-        # Create batcher object to handle mini-batch creation
-        self.batcher = Batcher(self.X.shape[0], batch_size)
+        # Initialise batcher attribute
+        self.batcher = None
 
         # Set loss function
         self.loss = create_loss_function(loss)
@@ -52,6 +53,9 @@ class Trainer:
 
         # Ensure model is in training mode
         self.model.train()
+
+        # Create batcher object to handle mini-batch creation
+        self.batcher = Batcher(self.X.shape[0], self.batch_size)
 
         # Loop through designated number of epochs
         for epoch in range(1, self.n_epochs + 1):
@@ -110,23 +114,54 @@ class Trainer:
         # Ensure model mode is set to testing
         self.model.test()
 
-        # Forward pass all data and get output
-        output = self.model.forward(X)
+        # Create batcher object to handle mini-batch creation
+        self.batcher = Batcher(X.shape[0], self.batch_size)
 
-        # Calculate average loss for test dataset (one-hot all y samples' classes)
-        loss = self.loss(one_hot(y), output)
+        # Get batches indices for this epoch
+        batches = self.batcher.generate_batch_indices()
+
+        # Instantiate accumulated loss variable for current epoch
+        acc_loss = 0
+
+        # Create empty lists for storing predicted and true values in the same order as batches
+        y_hat = []
+        y_true = []
+
+        # Loop through all batches
+        for batch in batches:
+
+            # Get current batch data
+            X_batch, y_batch = X[batch], y[batch]
+
+            # Forward pass all data and get output
+            batch_output = self.model.forward(X_batch)
+
+            # Calculate average loss for current test batch
+            ## REVIEW WHY THIS STEP HAS TO BE DIVIDED BY BATCH SIZE
+            batch_loss = self.loss(y_batch, batch_output)/self.batch_size
+
+            # Add batch loss to accumulated loss
+            acc_loss += batch_loss
+
+            # Append predicted classes for current test batch to test dataset list
+            y_hat.append(np.argmax(batch_output, axis=1))
+            y_true.append(y_batch)
+
+        # Calculate average loss across all test batches
+        test_loss = acc_loss / len(batches)
 
         # Display test loss
-        print(f"Average test loss: {loss}")
+        print(f"Average test loss: {test_loss}")
 
-        # Get predicted classes
-        y_hat = np.argmax(output, axis=1)
+        # Flatten predicted and true labels in 1d arrays
+        y_hat = np.concatenate(y_hat).ravel()
+        y_true = np.concatenate(y_true).ravel()
 
         # Calculate classification accuracy
-        accuracy = np.round(np.mean(y.flatten() == y_hat) * 100, 2)
+        accuracy = np.mean(y_hat == y_true)
 
         # Display classification accuracy (equal class distribution)
-        print(f"Classification accuracy: {accuracy}%")
+        print(f"Classification accuracy: {np.round(accuracy * 100, 2)}%")
 
-        # Return loss and predicted values for model
-        return loss
+        # Return loss and predictive accuracy of model
+        return {'loss': test_loss, 'accuracy': accuracy}
