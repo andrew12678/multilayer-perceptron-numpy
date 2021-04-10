@@ -131,7 +131,7 @@ class MLP:
         for layer in self.layers:
 
             # Check if current layer has training attribute
-            if hasattr(layer, 'training'):
+            if hasattr(layer, "training"):
 
                 # Set layer mode to model mode (training)
                 layer.training = self.training
@@ -146,7 +146,7 @@ class MLP:
         for layer in self.layers:
 
             # Check if current layer has training attribute
-            if hasattr(layer, 'training'):
+            if hasattr(layer, "training"):
 
                 # Set layer mode to model mode (testing)
                 layer.training = self.training

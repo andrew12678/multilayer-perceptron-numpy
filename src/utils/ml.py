@@ -76,6 +76,62 @@ def create_stratified_kfolds(X_train: np.ndarray, y_train: np.ndarray, k: int = 
     return splits
 
 
+def initialise_weights(n_in: int, n_out: int, activation_fn: str):
+    """
+    Get initialisations for a weight matrix of a network.
+    Args:
+        n_in (int): number of inputs to take for each neuron in the layer
+        n_out (int): number of outputs/neurons
+        activation_fn (str): type of activation function used for weight initialisation (he, xavier, xavier4)
+    """
+    # Check if Xavier initialisation (Sigmoid/Logistic)
+    if activation_fn == "logistic":
+
+        # Randomly initialise weights according to Xavier
+        weights = np.random.uniform(
+            low=-np.sqrt(6.0 / (n_in + n_out)),
+            high=np.sqrt(6.0 / (n_in + n_out)),
+            size=(n_in, n_out),
+        )
+
+    # Check if Xavier initialisation (Tanh)
+    elif activation_fn == "tanh":
+
+        # Initialise Xavier weights and multiply by 4
+        weights = (
+            np.random.uniform(
+                low=-np.sqrt(6.0 / (n_in + n_out)),
+                high=np.sqrt(6.0 / (n_in + n_out)),
+                size=(n_in, n_out),
+            )
+            * 4
+        )
+
+    # Check if He initialisation (ReLU & LReLU)
+    elif activation_fn == "relu" or activation_fn == "leaky_relu":
+
+        # Initialise weights using Kaiming uniform distribution
+        weights = np.random.uniform(
+            low=-np.sqrt(6.0 / n_in), high=np.sqrt(6.0 / n_in), size=(n_in, n_out)
+        )
+
+    # Check if activation is not defined (REVIEW THIS)
+    elif activation_fn == None:
+
+        # Initialise weights using Kaiming uniform distribution
+        weights = np.random.uniform(
+            low=-np.sqrt(6.0 / n_in), high=np.sqrt(6.0 / n_in), size=(n_in, n_out)
+        )
+
+    # Check if unknown activation function entered
+    else:
+        # Raise exception indicating that initialisation method is unknown
+        raise ValueError(
+            f"'{activation_fn}' is not a recognised activation function for weight initialisation."
+        )
+    return weights
+
+
 class Batcher:
     """
     Class for generating mini-batch indices, run at the beginning of every epoch
