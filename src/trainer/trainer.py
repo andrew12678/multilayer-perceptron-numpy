@@ -3,6 +3,7 @@ from ..network.mlp import MLP
 from ..layers.layer import Layer
 from ..utils.ml import Batcher, one_hot
 from ..utils.helpers import create_loss_function, create_optimiser
+from ..utils.metrics import calculate_metrics
 
 
 class Trainer:
@@ -145,17 +146,17 @@ class Trainer:
         # Calculate average loss across all test batches
         test_loss = acc_loss / len(batches)
 
-        # Display test loss
-        print(f"Average test loss: {test_loss}")
-
         # Flatten predicted and true labels in 1d arrays
         y_hat, y_true = np.concatenate(y_hat).ravel(), np.concatenate(y_true).ravel()
 
-        # Calculate classification accuracy
-        accuracy = np.mean(y_hat == y_true)
+        # Calculate metrics
+        metrics_dict = calculate_metrics(
+            y=y_true,
+            y_hat=y_hat
+        )
 
-        # Display classification accuracy (equal class distribution)
-        print(f"Classification accuracy: {np.round(accuracy * 100, 2)}%")
+        # Add loss to metrics dictionary
+        metrics_dict['loss'] = test_loss
 
         # Return loss and predictive accuracy of model
-        return {'loss': test_loss, 'accuracy': accuracy}
+        return metrics_dict

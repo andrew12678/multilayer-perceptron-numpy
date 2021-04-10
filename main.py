@@ -129,6 +129,8 @@ def run_kfolds():
 
         # Display loss for current fold
         print(f"Loss for fold {k + 1}: {results['loss']}")
+        print(f"accuracy: {results['accuracy']}")
+        print(f"f1_macro: {results['f1_macro']}")
 
         # Add loss to total
         acc_loss += results['loss']
