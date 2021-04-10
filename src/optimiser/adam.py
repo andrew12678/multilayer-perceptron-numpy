@@ -9,9 +9,9 @@ class Adam(Optimiser):
         self,
         layers: List[Layer],
         learning_rate: float,
+        weight_decay: float = 0,
         beta1: float = 0.9,
         beta2: float = 0.999,
-        weight_decay: float = 0,
     ):
         """
         Initialise parameters for Adam optimiser. Default values given by the paper: https://arxiv.org/pdf/1412.6980.pdf

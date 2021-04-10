@@ -48,7 +48,8 @@ def create_loss_function(loss_name: str):
 
 
 def create_optimiser(
-    optimiser_name: str, layers: list, lr: float, weight_decay: float, momentum: float
+    optimiser_name: str, layers: list, lr: float, weight_decay: float, momentum: float,
+    exponential_decay: float, beta1: float, beta2: float
 ):
 
     """
@@ -58,11 +59,22 @@ def create_optimiser(
         layers (list): list of network layer tuples (n_in, n_out)
         lr (float): learning rate
         weight_decay (float): weight decay factor
-        momentum (float): momentum factor
+        momentum (float): momentum factor for SGD
+        exponential_decay (float): exponential decay rate for adadelta
+        beta1 (float): first smoothing param for adam
+        beta2 (float): second smoothing param for adam
     Returns:
         Optimiser object
 
     """
 
-    if optimiser_name == "sgd":
+    if optimiser_name.lower() == "sgd":
         return SGD(layers, lr, weight_decay, momentum)
+    elif optimiser_name.lower() == "adadelta":
+        return Adadelta(layers, lr, weight_decay, exponential_decay)
+    elif optimiser_name.lower() == "adagrad":
+        return Adagrad(layers, lr, weight_decay)
+    elif optimiser_name.lower() == "adam":
+        return Adam(layers, lr, weight_decay, beta1, beta2)
+    else:
+        raise ValueError(f"Invalid optimiser name: {optimiser_name}")

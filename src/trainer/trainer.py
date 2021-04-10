@@ -24,7 +24,10 @@ class Trainer:
         optimiser: str,
         learning_rate: float,
         weight_decay: float = 0,
-        momentum: float = None,
+        momentum: float = 0,
+        exponential_decay: float = 0.9,
+        beta1: float = 0.9,
+        beta2: float = 0.999,
     ):
 
         # Set attributes
@@ -47,6 +50,9 @@ class Trainer:
             learning_rate,
             weight_decay,
             momentum,
+            exponential_decay,
+            beta1,
+            beta2,
         )
 
     # Primary method that trains the network

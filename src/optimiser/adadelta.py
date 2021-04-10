@@ -9,8 +9,8 @@ class Adadelta(Optimiser):
         self,
         layers: List[Layer],
         learning_rate: float,
-        exponential_decay: float = 0.9,
-        weight_decay: float = 0,
+        weight_decay: float,
+        exponential_decay: float,
     ):
         """
         Initialise the Adadelta with parameters.
