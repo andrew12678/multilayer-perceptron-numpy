@@ -1,10 +1,7 @@
 import numpy as np
 
 
-def calculate_metrics(y: np.ndarray,
-                      y_hat: np.ndarray,
-                      accuracy: bool = True,
-                      f1: bool = True):
+def calculate_metrics(y: np.ndarray, y_hat: np.ndarray):
 
     """
         Calls all metrics calculations and returns dict of all metrics
@@ -17,16 +14,11 @@ def calculate_metrics(y: np.ndarray,
             metric_dict (Dict): dictionary containing calculated metrics
         """
 
-    # Create empty dictionary for storing metrics
-    metrics_dict = {}
+    # Create dictionary containing all metrics
+    metrics_dict = {'accuracy': classification_accuracy(y, y_hat),
+                    'f1_macro': f1_macro(y, y_hat)}
 
-    # Calculate all designated metrics and store in dictionary
-    if accuracy:
-        metrics_dict['accuracy'] = classification_accuracy(y, y_hat)
-    if f1:
-        metrics_dict['f1_macro'] = f1_macro(y, y_hat)
-
-    # Return dictionary containing calculated metrics
+    # Return metrics dictionary
     return metrics_dict
 
 
