@@ -37,6 +37,8 @@ class Trainer:
 
         # Set loss function
         self.loss = create_loss_function(loss)
+
+        # Create optimiser
         self.optimiser = create_optimiser(
             optimiser,
             [l for l in model.layers if isinstance(l, Layer)],
@@ -111,14 +113,20 @@ class Trainer:
         # Forward pass all data and get output
         output = self.model.forward(X)
 
-        # One-hot each sample's class
-        y = one_hot(y)
-
-        # Calculate average loss for test dataset
-        loss = self.loss(y, output)
+        # Calculate average loss for test dataset (one-hot all y samples' classes)
+        loss = self.loss(one_hot(y), output)
 
         # Display test loss
         print(f"Average test loss: {loss}")
 
-        # Return predicted values for model
-        return output
+        # Get predicted classes
+        y_hat = np.argmax(output, axis=1)
+
+        # Calculate classification accuracy
+        accuracy = np.round(np.mean(y.flatten() == y_hat) * 100, 2)
+
+        # Display classification accuracy (equal class distribution)
+        print(f"Classification accuracy: {accuracy}%")
+
+        # Return loss and predicted values for model
+        return loss
