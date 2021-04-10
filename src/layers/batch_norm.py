@@ -26,12 +26,8 @@ class BatchNorm(Layer):
 
         # Initialise scale (gamma) and shift (beta) parameters
         # NOTE: weights = gamma & biases = beta for continuity in updates via optimiser
-        self.weights = np.ones(
-            n_in,
-        )
-        self.biases = np.zeros(
-            n_in,
-        )
+        self.weights = np.ones(n_in)
+        self.biases = np.zeros(n_in)
 
         # Set gradients as the size of respective arrays
         self.grad_W = np.zeros(self.weights.shape)

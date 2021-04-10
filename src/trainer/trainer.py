@@ -63,9 +63,6 @@ class Trainer:
                 # Calculate loss for current batch
                 loss = self.loss(y_batch, output)
 
-                # Display loss
-                print(f"Loss {loss}")
-
                 # Perform backward propagation and get sensitivity for output layer
                 delta = self.loss.backward()
 

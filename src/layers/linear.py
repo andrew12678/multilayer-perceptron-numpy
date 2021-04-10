@@ -1,5 +1,6 @@
-from .layer import Layer
 import numpy as np
+from .layer import Layer
+from ..utils.ml import initialise_weights
 
 
 class Linear(Layer):
@@ -19,61 +20,11 @@ class Linear(Layer):
         # Make superclass
         super().__init__()
 
-        # Check if Xavier initialisation (Sigmoid/Logistic)
-        if activation_fn == "logistic":
-
-            # Randomly initialise weights according to Xavier
-            self.weights = np.random.uniform(
-                low=-np.sqrt(6.0 / (n_in + n_out)),
-                high=np.sqrt(6.0 / (n_in + n_out)),
-                size=(n_in, n_out),
-            )
-
-        # Check if Xavier initialisation (Tanh)
-        elif activation_fn == "tanh":
-
-            # Initialise Xavier weights and multiply by 4
-            self.weights = (
-                np.random.uniform(
-                    low=-np.sqrt(6.0 / (n_in + n_out)),
-                    high=np.sqrt(6.0 / (n_in + n_out)),
-                    size=(n_in, n_out),
-                )
-                * 4
-            )
-
-        # Check if He initialisation (ReLU & LReLU)
-        elif activation_fn == "relu" or activation_fn == "leaky_relu":
-
-            # Initialise weights using Kaiming uniform distribution
-            self.weights = np.random.uniform(
-                low=-np.sqrt(6.0 / n_in),
-                high=np.sqrt(6.0 / n_in),
-                size=(n_in, n_out),
-            )
-
-        # Check if activation is not defined (REVIEW THIS)
-        elif activation_fn == None:
-
-            # Initialise weights using Kaiming uniform distribution
-            self.weights = np.random.uniform(
-                low=-np.sqrt(6.0 / n_in),
-                high=np.sqrt(6.0 / n_in),
-                size=(n_in, n_out),
-            )
-
-        # Check if unknown activation function entered
-        else:
-
-            # Raise exception indicating that initialisation method is unknown
-            raise ValueError(
-                "Activation function not recognised for weight initialisation."
-            )
+        # Initialise the weights of the layer
+        self.weights = initialise_weights(n_in, n_out, activation_fn)
 
         # A bias for each output/neuron
-        self.biases = np.zeros(
-            n_out,
-        )
+        self.biases = np.zeros(n_out)
 
         # Set gradients as the size of respective arrays
         self.grad_W = np.zeros(self.weights.shape)

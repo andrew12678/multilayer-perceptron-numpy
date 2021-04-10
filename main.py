@@ -98,5 +98,5 @@ def run_kfolds():
 if __name__ == "__main__":
     # Set a random seed to reproduce results
     np.random.seed(42)
-    # run()
-    run_kfolds()
+    run()
+    # run_kfolds()
