@@ -82,7 +82,7 @@ class Trainer:
                 loss = self.loss(y_batch, output)
 
                 # Display batch loss
-                #print(f"Loss {loss}")
+                # print(f"Loss {loss}")
 
                 # Perform backward propagation and get sensitivity for output layer
                 delta = self.loss.backward()
@@ -158,4 +158,4 @@ class Trainer:
         print(f"Classification accuracy: {np.round(accuracy * 100, 2)}%")
 
         # Return loss and predictive accuracy of model
-        return {'loss': test_loss, 'accuracy': accuracy}
+        return {"loss": test_loss, "accuracy": accuracy}

@@ -14,9 +14,7 @@ def run():
     n_classes = len(np.unique(y_train))
 
     # Define layers in network (input_dim, output_dim)
-    layer_sizes = [(X_train.shape[1], 128),
-                   (128, 64),
-                   (64, n_classes)]
+    layer_sizes = [(X_train.shape[1], 128), (128, 64), (64, n_classes)]
 
     # Define activation functions for each layer
     activations = ["relu", "relu", None]
@@ -50,10 +48,7 @@ def run():
     trained_model = trainer.train()
 
     # Test model
-    trainer.validation(
-        X=X_test,
-        y=y_test
-    )
+    trainer.validation(X=X_test, y=y_test)
 
 
 def run_kfolds():
@@ -94,7 +89,7 @@ def run_kfolds():
             layer_sizes=layer_sizes,
             activations=activations,
             dropout_rates=dropout_rates,
-            batch_normalisation=batch_normalisation
+            batch_normalisation=batch_normalisation,
         )
 
         # Train model using current hyperparameters
@@ -116,22 +111,19 @@ def run_kfolds():
 
         # Perform validation
         # Extract validation loss and predicted labels
-        results = trainer.validation(
-            X=X_val_k,
-            y=y_val_k
-        )
+        results = trainer.validation(X=X_val_k, y=y_val_k)
 
         # Get model predictions for validation set
-        #fold_preds = model.forward(X_val_k)
+        # fold_preds = model.forward(X_val_k)
 
         # Get model loss on validation set
-        #fold_loss = trainer.loss(one_hot(y_val_k), fold_preds)
+        # fold_loss = trainer.loss(one_hot(y_val_k), fold_preds)
 
         # Display loss for current fold
         print(f"Loss for fold {k + 1}: {results['loss']}")
 
         # Add loss to total
-        acc_loss += results['loss']
+        acc_loss += results["loss"]
 
     # Display the overall cross-validation loss across all folds
     print(f"Overall cross-validation loss: {acc_loss}")
@@ -141,5 +133,5 @@ def run_kfolds():
 if __name__ == "__main__":
     # Set a random seed to reproduce results
     np.random.seed(42)
-    #run()
+    # run()
     run_kfolds()
