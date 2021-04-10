@@ -27,7 +27,7 @@ def run():
     # Create multi-layer perceptron model (i.e build model object)
     model = MLP(
         layer_sizes=layer_sizes,
-        activation=activations,
+        activations=activations,
         dropout_rates=dropout_rates,
         batch_normalisation=True,
     )
@@ -78,33 +78,62 @@ def run_kfolds():
     layer_sizes = [(X_train.shape[1], 128), (128, 64), (64, n_classes)]
     activations = ["relu", "relu", None]
     dropout_rates = [0, 0.5, 0.5]
+    batch_normalisation = True
 
+    # Create training-validation splits
     splits = create_stratified_kfolds(X_train, y_train, num_folds)
 
+    # Instantiate loss tracker
     loss = 0
+
     # Train and test on each k-fold split
     for k, (X_train_k, y_train_k, X_val_k, y_val_k) in enumerate(splits):
-        model = MLP(layer_sizes, activations, dropout_rates)
+
+        # Define model using current architecture
+        model = MLP(
+            layer_sizes=layer_sizes,
+            activations=activations,
+            dropout_rates=dropout_rates,
+            batch_normalisation=batch_normalisation
+        )
+
+        # Train model using current hyperparameters
         trainer = Trainer(
-            X_train_k,
-            y_train_k,
-            model,
-            batch_size,
-            n_epochs,
-            loss_fn,
-            optimiser,
+            X=X_train_k,
+            y=y_train_k,
+            model=model,
+            batch_size=batch_size,
+            n_epochs=n_epochs,
+            loss=loss_fn,
+            optimiser=optimiser,
             learning_rate=learning_rate,
             weight_decay=weight_decay,
             momentum=momentum,
         )
+
         # Train model on training set
         trainer.train()
+
+        # Perform validation
+        # Extract validation loss and predicted labels
+        fold_loss = trainer.test(
+                        X=X_val_k,
+                        y=y_val_k
+                    )
+
         # Get model predictions for validation set
-        fold_preds = model.forward(X_val_k)
+        #fold_preds = model.forward(X_val_k)
+
         # Get model loss on validation set
-        fold_loss = trainer.loss(one_hot(y_val_k), fold_preds)
+        #fold_loss = trainer.loss(one_hot(y_val_k), fold_preds)
+
+        # Display loss for current fold
         print(f"Loss for fold {k}: {fold_loss}")
+
+        # Add loss to total
         loss += fold_loss
+
+    # Display the overall cross-validation loss across all folds
     print(f"Overall cross-validation loss: {loss}")
 
 

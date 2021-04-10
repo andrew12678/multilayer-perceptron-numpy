@@ -20,18 +20,22 @@ def one_hot(y: np.ndarray):
 
 
 def create_stratified_kfolds(X_train: np.ndarray, y_train: np.ndarray, k: int = 5):
+
     """
-    Creates k-folds cross validation data given X_train and y_train.
+    Creates stratified k-folds cross validation data given X_train and y_train.
     Args:
         X_train (np.ndarray): the training features
         y_train (np.ndarray): the training labels
         k (int): the number of cross validation folds
 
     Returns:
-        A list containing the data for k-folds
+        splits (List): A list containing the data for k-folds
     """
+
+    # Set features and labels as just training data
     X_all = X_train
     y_all = y_train
+
     # Get the number of elements per class
     group_counts = np.bincount(y_all.flatten())
 
@@ -68,6 +72,7 @@ def create_stratified_kfolds(X_train: np.ndarray, y_train: np.ndarray, k: int = 
         y_test = y_all[mask]
         splits.append((X_train, y_train, X_test, y_test))
 
+    # Return list of stratified k-fold splits (each split is a tuple of training and test data)
     return splits
 
 
