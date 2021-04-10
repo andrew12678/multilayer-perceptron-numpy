@@ -96,7 +96,7 @@ class BatchNorm(Layer):
             return self.output
 
         # Check if model is being tested
-        elif not self.training:
+        else:
 
             # Normalise using the running mean and variances
             x_hat = (x - self.running_mean) / np.sqrt(self.running_var + self.epsilon)
