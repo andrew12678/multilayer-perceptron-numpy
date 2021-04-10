@@ -4,6 +4,7 @@ from ..optimiser import *
 
 
 def create_activation_layer(activation_name: str):
+
     """
     Creates an activation layer and returns it
     Args:
@@ -12,6 +13,7 @@ def create_activation_layer(activation_name: str):
     Returns:
 
     """
+
     if activation_name.lower() == "relu":
         return ReLU()
     elif activation_name.lower() == "leaky_relu":
@@ -27,6 +29,7 @@ def create_activation_layer(activation_name: str):
 
 
 def create_loss_function(loss_name: str):
+
     """
     Creates a loss function and returns it
     Args:
@@ -35,6 +38,7 @@ def create_loss_function(loss_name: str):
     Returns:
 
     """
+
     if loss_name == "cross_entropy":
         return CrossEntropyLoss()
     elif loss_name == "mse":
@@ -46,13 +50,19 @@ def create_loss_function(loss_name: str):
 def create_optimiser(
     optimiser_name: str, layers: list, lr: float, weight_decay: float, momentum: float
 ):
+
     """
     Creates a optimiser and returns it
     Args:
         optimiser_name (str): Name of optimiser
-
+        layers (list): list of network layer tuples (n_in, n_out)
+        lr (float): learning rate
+        weight_decay (float): weight decay factor
+        momentum (float): momentum factor
     Returns:
+        Optimiser object
 
     """
+
     if optimiser_name == "sgd":
         return SGD(layers, lr, weight_decay, momentum)
