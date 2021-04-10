@@ -9,16 +9,16 @@ class MLP:
     def __init__(
         self,
         layer_sizes: List[Tuple],
-        activation: List[str],
+        activations: List[str],
         dropout_rates: List[float],
         batch_normalisation: bool = True,
     ):
 
         """
-        Initialises the layers of the Multilayer Perceptron
+        Initialises the layers of the Multilayer Perceptron (i.e. builds the network)
         Args:
             layer_sizes (List[Tuple]): layers of the network as tuples (in, out)
-            activation (List[str): activation for each layer
+            activations (List[str): activation for each layer
             dropout_rates (List[float]): the dropout rates for each layer
             batch_normalisation (bool): indicates whether to use batch normalisation or not (default True)
         """
@@ -31,7 +31,7 @@ class MLP:
 
         # Iterate over all layers and respective activation functions
         for idx, (layer_size, act, dropout_rate) in enumerate(
-            zip(layer_sizes, activation, dropout_rates)
+            zip(layer_sizes, activations, dropout_rates)
         ):
 
             # Extract input and output dimensions
