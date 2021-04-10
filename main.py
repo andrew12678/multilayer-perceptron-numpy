@@ -83,8 +83,8 @@ def run_kfolds():
     # Create training-validation splits
     splits = create_stratified_kfolds(X_train, y_train, num_folds)
 
-    # Instantiate loss tracker
-    loss = 0
+    # Instantiate accumulated loss tracker
+    acc_loss = 0
 
     # Train and test on each k-fold split
     for k, (X_train_k, y_train_k, X_val_k, y_val_k) in enumerate(splits):
@@ -116,10 +116,10 @@ def run_kfolds():
 
         # Perform validation
         # Extract validation loss and predicted labels
-        fold_loss = trainer.test(
+        results = trainer.test(
                         X=X_val_k,
                         y=y_val_k
-                    )
+                  )
 
         # Get model predictions for validation set
         #fold_preds = model.forward(X_val_k)
@@ -128,18 +128,18 @@ def run_kfolds():
         #fold_loss = trainer.loss(one_hot(y_val_k), fold_preds)
 
         # Display loss for current fold
-        print(f"Loss for fold {k}: {fold_loss}")
+        print(f"Loss for fold {k + 1}: {results['loss']}")
 
         # Add loss to total
-        loss += fold_loss
+        acc_loss += results['loss']
 
     # Display the overall cross-validation loss across all folds
-    print(f"Overall cross-validation loss: {loss}")
+    print(f"Overall cross-validation loss: {acc_loss}")
 
 
 # Run script
 if __name__ == "__main__":
     # Set a random seed to reproduce results
     np.random.seed(42)
-    run()
-    #run_kfolds()
+    #run()
+    run_kfolds()
