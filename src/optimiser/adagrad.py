@@ -19,7 +19,7 @@ class Adagrad(Optimiser):
         self.lr = learning_rate
         self.weight_decay = weight_decay
         self.gradient_sum_squares = [
-            [[np.zeros(layer.grad_W.shape), np.zeros(layer.grad_B.shape)]]
+            [np.zeros(layer.grad_W.shape), np.zeros(layer.grad_B.shape)]
             for layer in layers
         ]  # Set this to 0 initially since all gradients are 0
         self.epsilon = 1e-9

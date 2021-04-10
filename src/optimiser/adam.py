@@ -18,9 +18,9 @@ class Adam(Optimiser):
         Args:
             layers (Linear[Layer]): List of parameters holding Layer objects (either BN or Linear)
             learning_rate (float): the learning rate of the optimiser
-            beta1 (float):
-            beta2 (float):
-            weight_decay (float):
+            beta1 (float): decay rate for m_t
+            beta2 (float): decay rate for v_t
+            weight_decay (float): the decay factor applied to the weights before an update.
         """
         super().__init__(layers)
         self.lr = learning_rate
