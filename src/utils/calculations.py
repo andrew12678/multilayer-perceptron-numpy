@@ -19,11 +19,12 @@ def softmax(x: np.ndarray):
     exp_shift = np.exp(shift)
     softmax_x = exp_shift / exp_shift.sum(axis=1, keepdims=True)
 
-    # Return softmax transformation
+    # Return softmax transformed arrays
     return softmax_x
 
 
 def sigmoid(x: np.ndarray):
+
     """
     Computes the sigmoid of a numpy array
     Args:
@@ -32,4 +33,6 @@ def sigmoid(x: np.ndarray):
     Returns:
 
     """
+
+    # Return sigmoid transform
     return 1.0 / (1.0 + np.exp(-x))
