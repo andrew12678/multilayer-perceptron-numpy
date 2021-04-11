@@ -185,7 +185,7 @@ def arg_parser():
         "-p", "--processes", default=1, type=int, help="If > 1 then use multiprocessing"
     )
     parser.add_argument(
-        "-kf", "--kfolds", default=1, type=int, help="If 1 then run kfolds validation"
+        "-kf", "--kfolds", default=0, type=int, help="If 1 then run kfolds validation"
     )
     parser.add_argument(
         "-s", "--seed", default=42, type=int, help="Random seed used for experiment"
