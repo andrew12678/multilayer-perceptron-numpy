@@ -1,8 +1,12 @@
+import numpy as np
+import time
+import yaml
+import itertools
+
 from src.trainer.trainer import Trainer
 from src.utils.io import load_directory
 from src.network.mlp import MLP
-from src.utils.ml import one_hot, create_stratified_kfolds
-import numpy as np
+from src.utils.ml import one_hot, create_stratified_kfolds, create_layer_sizes
 
 
 def run():
@@ -13,21 +17,25 @@ def run():
     # Define the number of classes
     n_classes = len(np.unique(y_train))
 
-    # Define layers in network (input_dim, output_dim)
-    layer_sizes = [(X_train.shape[1], 128), (128, 64), (64, n_classes)]
+    # Load hyperparameters from file
+    with open("hyperparams/config.yml", "r") as f:
+        p = yaml.safe_load(f)["params1"]
 
-    # Define activation functions for each layer
-    activations = ["relu", "relu", None]
+    # Print hyperparameters
+    for key, value in p.items():
+        print(key, ":", value)
 
-    # Define dropout rates for all layers
-    dropout_rates = [0, 0.5, 0.5]
+    # Create a list of tuples indicating the size of each network layer
+    layer_sizes = create_layer_sizes(
+        X_train.shape[1], n_classes, p["num_hidden"], p["hidden_size"]
+    )
 
     # Create multi-layer perceptron model (i.e build model object)
     model = MLP(
         layer_sizes=layer_sizes,
-        activations=activations,
-        dropout_rates=dropout_rates,
-        batch_normalisation=True,
+        activations=p["activations"],
+        dropout_rates=p["dropout_rates"],
+        batch_normalisation=p["batch_normalisation"],
     )
 
     # Create trainer object to handle train each epoch (define input data and parameters)
@@ -35,13 +43,13 @@ def run():
         X=X_train,
         y=y_train,
         model=model,
-        batch_size=64,
-        n_epochs=3,
-        loss="cross_entropy",
-        optimiser="adadelta",
-        learning_rate=0.001,
-        weight_decay=0.0,
-        momentum=0.9,
+        batch_size=p["batch_size"],
+        n_epochs=p["num_epochs"],
+        loss=p["loss"],
+        optimiser=p["optimiser"],
+        learning_rate=p["learning_rate"],
+        weight_decay=p["weight_decay"],
+        momentum=p["momentum"],
     )
 
     # Train model
@@ -63,78 +71,91 @@ def run_kfolds():
     # Define number of cross-validation folds
     num_folds = 5
 
-    # At some point we will do a search over some of these, and justify the values of others theoretically.
-    batch_size = 64
-    n_epochs = 5
-    loss_fn = "cross_entropy"
-    optimiser = "sgd"
-    learning_rate = 0.01
-    weight_decay = 0.0
-    momentum = 0.9
-    layer_sizes = [(X_train.shape[1], 128), (128, 64), (64, n_classes)]
-    activations = ["relu", "relu", None]
-    dropout_rates = [0, 0.5, 0.5]
-    batch_normalisation = True
+    # Load hyperparameters from file
+    with open("hyperparams/config.yml", "r") as f:
+        hyperparam_grid = yaml.safe_load(f)["grid2"]
+
+    # Print hyperparameters
+    for key, value in hyperparam_grid.items():
+        print(key, ":", value)
+
+    # Setup grid search by enumerating all possible combination of parameters in hyperparam_grid
+    # e.g. {'batch_size': [24, 48], 'num_epochs': [2]} -> [{'batch_size': 24, 'num_epochs': 2}
+    #                                                     {'batch_size': 48, 'num_epochs': 2}]
+    keys, values = zip(*hyperparam_grid.items())
+    param_list = [dict(zip(keys, v)) for v in itertools.product(*values)]
 
     # Create training-validation splits
     splits = create_stratified_kfolds(X_train, y_train, num_folds)
 
-    # Instantiate accumulated loss tracker
-    acc_loss = 0
-
-    # Train and test on each k-fold split
-    for k, (X_train_k, y_train_k, X_val_k, y_val_k) in enumerate(splits):
-
-        # Define model using current architecture
-        model = MLP(
-            layer_sizes=layer_sizes,
-            activations=activations,
-            dropout_rates=dropout_rates,
-            batch_normalisation=batch_normalisation,
+    for p in param_list:
+        # Create a list of tuples indicating the size of each network layer
+        layer_sizes = create_layer_sizes(
+            X_train.shape[1], n_classes, p["num_hidden"], p["hidden_size"]
         )
 
-        # Train model using current hyperparameters
-        trainer = Trainer(
-            X=X_train_k,
-            y=y_train_k,
-            model=model,
-            batch_size=batch_size,
-            n_epochs=n_epochs,
-            loss=loss_fn,
-            optimiser=optimiser,
-            learning_rate=learning_rate,
-            weight_decay=weight_decay,
-            momentum=momentum,
-        )
+        # Instantiate accumulated loss tracker
+        acc_loss = 0
 
-        # Train model on training set
-        trainer.train()
+        # Train and test on each k-fold split
+        for k, (X_train_k, y_train_k, X_val_k, y_val_k) in enumerate(splits):
 
-        # Perform validation
-        # Extract validation loss and predicted labels
-        results = trainer.validation(X=X_val_k, y=y_val_k)
+            # Define model using current architecture
+            model = MLP(
+                layer_sizes=layer_sizes,
+                activations=p["activations"],
+                dropout_rates=p["dropout_rates"],
+                batch_normalisation=p["batch_normalisation"],
+            )
 
-        # Get model predictions for validation set
-        # fold_preds = model.forward(X_val_k)
+            # Create trainer object to handle train each epoch (define input data and parameters)
+            trainer = Trainer(
+                X=X_train,
+                y=y_train,
+                model=model,
+                batch_size=p["batch_size"],
+                n_epochs=p["num_epochs"],
+                loss=p["loss"],
+                optimiser=p["optimiser"],
+                learning_rate=p["learning_rate"],
+                weight_decay=p["weight_decay"],
+                momentum=p["momentum"],
+            )
 
-        # Get model loss on validation set
-        # fold_loss = trainer.loss(one_hot(y_val_k), fold_preds)
+            # Train model on training set
+            trainer.train()
 
-        # Display loss for current fold
-        print(f"Loss for fold {k + 1}: {results['loss']}")
-        print(f"accuracy: {results['accuracy']}")
-        print(f"f1_macro: {results['f1_macro']}")
+            # Perform validation
+            # Extract validation loss and predicted labels
+            results = trainer.validation(X=X_val_k, y=y_val_k)
 
-        # Add loss to total
-        acc_loss += results["loss"]
+            # Get model predictions for validation set
+            # fold_preds = model.forward(X_val_k)
 
-    # Display the overall cross-validation loss across all folds
-    print(f"Overall cross-validation loss: {acc_loss}")
+            # Get model loss on validation set
+            # fold_loss = trainer.loss(one_hot(y_val_k), fold_preds)
+
+            # Display loss for current fold
+            # print(f"Loss for fold {k + 1}: {results['loss']}")
+            # print(f"accuracy: {results['accuracy']}")
+            # print(f"f1_macro: {results['f1_macro']}")
+
+            # Add loss to total
+            acc_loss += results["loss"]
+
+        print(f"Trained on params:")
+        for k, v in p.items():
+            print(f"{k}: {v}")
+        # Display the overall cross-validation loss across all folds
+        print(f"Overall cross-validation loss: {acc_loss}")
 
 
 # Run script
 if __name__ == "__main__":
+    start_time = time.time()
     # Set a random seed to reproduce results
     np.random.seed(42)
-    run()
-    # run_kfolds()
+    # run()
+    run_kfolds()
+
+    print("Run time: ", time.time() - start_time)

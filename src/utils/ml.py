@@ -132,6 +132,27 @@ def initialise_weights(n_in: int, n_out: int, activation_fn: str):
     return weights
 
 
+def create_layer_sizes(input_size, output_size, num_hidden, hidden_size):
+    """
+    Creates a list of tuples representing the layer size of a fully-connected network. Note that in
+    this setup, all hidden layers are of equal size
+    Args:
+        input_size: number of features in the data
+        output_size: number of classes/neurons in the output
+        num_hidden: number of hidden layers (not including the output layer)
+        hidden_size: number of neurons in the hidden layer(s)
+    """
+    layer_sizes = []
+    if num_hidden == 0:
+        layer_sizes.append((input_size, output_size))
+    else:
+        layer_sizes.append((input_size, hidden_size))
+        for i in range(num_hidden - 1):
+            layer_sizes.append((hidden_size, hidden_size))
+        layer_sizes.append((hidden_size, output_size))
+    return layer_sizes
+
+
 class Batcher:
     """
     Class for generating mini-batch indices, run at the beginning of every epoch
