@@ -12,7 +12,23 @@ params1:
     dropout_rates: [0, 0.8, 0.8]
     batch_normalisation: True
 
+params1:
+    loss: "cross_entropy"
+    optimiser: "sgd"
+    batch_size: 128
+    num_epochs: 5
+    learning_rate: 0.01
+    weight_decay: 0.0
+    momentum: 0.0
+    num_hidden: 2
+    hidden_size: 64
+    activations: ["relu", "relu", null]
+    dropout_rates: [0., 0., 0.]
+    batch_normalisation: False
+
 grid1:
+    loss: ["cross_entropy"]
+    optimiser: ["sgd"]
     batch_size: [32, 64, 128]
     num_epochs: [2, 5, 10, 20]
     learning_rate: [0.1, 0.01, 0.001]
@@ -28,7 +44,7 @@ grid2:
     loss: ["cross_entropy"]
     optimiser: ["sgd"]
     batch_size: [128]
-    num_epochs: [2, 5]
+    num_epochs: [2]
     learning_rate: [0.01]
     weight_decay: [0.001, 0]
     momentum: [0.9]

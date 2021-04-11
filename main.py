@@ -11,7 +11,7 @@ from src.network.mlp import MLP
 from src.utils.ml import one_hot, create_stratified_kfolds, create_layer_sizes
 
 
-def run():
+def run(args):
 
     # Import training and test data
     X_train, y_train, X_test, y_test = load_directory("data")
@@ -20,8 +20,8 @@ def run():
     n_classes = len(np.unique(y_train))
 
     # Load hyperparameters from file
-    with open("hyperparams/config.yml", "r") as f:
-        p = yaml.safe_load(f)["params1"]
+    with open(args.config, "r") as f:
+        p = yaml.safe_load(f)[args.hyperparams]
 
     # Print hyperparameters
     for key, value in p.items():
@@ -135,8 +135,8 @@ def run_kfolds(args):
     num_folds = 5
 
     # Load hyperparameters from file
-    with open(f"hyperparams/{args.config}", "r") as f:
-        hyperparam_grid = yaml.safe_load(f)["grid2"]
+    with open(args.config, "r") as f:
+        hyperparam_grid = yaml.safe_load(f)[args.hyperparams]
 
     # Print hyperparameters
     for key, value in hyperparam_grid.items():
@@ -157,6 +157,7 @@ def run_kfolds(args):
         pool_args.append((p, X_train, y_train, n_classes, splits))
 
     if args.processes > 1:
+        print(f"Running with {args.processes} processors.")
         with Pool(processes=args.processes) as pool:
             pool.map(run_experiment, pool_args)
     else:
@@ -164,25 +165,46 @@ def run_kfolds(args):
             run_experiment(p)
 
 
-# Run script
-if __name__ == "__main__":
-    args = argparse.ArgumentParser()
-    args.add_argument(
+def arg_parser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
         "-c",
         "--config",
-        default="config.yml",
+        default="hyperparams/config.yml",
         type=str,
         help="Config file for the experiment",
     )
-
-    args.add_argument(
+    parser.add_argument(
+        "-hy",
+        "--hyperparams",
+        default="params1",
+        type=str,
+        help="Name of hyperparameter set",
+    )
+    parser.add_argument(
         "-p", "--processes", default=1, type=int, help="If > 1 then use multiprocessing"
     )
+    parser.add_argument(
+        "-kf", "--kfolds", default=1, type=int, help="If 1 then run kfolds validation"
+    )
+    parser.add_argument(
+        "-s", "--seed", default=42, type=int, help="Random seed used for experiment"
+    )
+    args = parser.parse_args()
+    return args
+
+
+# Run script
+if __name__ == "__main__":
+    args = arg_parser()
 
     start_time = time.time()
     # Set a random seed to reproduce results
-    np.random.seed(42)
-    # run()
-    run_kfolds(args.parse_args())
+    np.random.seed(args.seed)
+
+    if args.kfolds:
+        run_kfolds(args)
+    else:
+        run(args)
 
     print("Run time: ", time.time() - start_time)
