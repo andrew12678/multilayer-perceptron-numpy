@@ -9,8 +9,8 @@ class Adadelta(Optimiser):
         self,
         layers: List[Layer],
         learning_rate: float,
-        exponential_decay: float = 0.9,
-        weight_decay: float = 0,
+        weight_decay: float,
+        exponential_decay: float,
     ):
         """
         Initialise the Adadelta with parameters.
@@ -24,12 +24,12 @@ class Adadelta(Optimiser):
         self.exponential_decay = exponential_decay
         self.weight_decay = weight_decay
         self.gradient_squares_moving_average = [
-            [np.zeros(layer.grad_W.shape), np.zeros(layer.grad_B.shape)]
+            [np.zeros(layer.grad_W.shape), np.zeros(layer.grad_b.shape)]
             for layer in layers
         ]  # Set this to 0 initially since all gradients are 0
 
         self.previous_update = [
-            [np.zeros(layer.grad_W.shape), np.zeros(layer.grad_B.shape)]
+            [np.zeros(layer.grad_W.shape), np.zeros(layer.grad_b.shape)]
             for layer in layers
         ]  # Set this to 0 initially since all previous gradients are 0
         self.epsilon = 1e-6
@@ -41,17 +41,17 @@ class Adadelta(Optimiser):
             new_grad_W = self.exponential_decay * self.gradient_squares_moving_average[
                 idx
             ][0] + (1 - self.exponential_decay) * (layer.grad_W ** 2)
-            new_grad_B = self.exponential_decay * self.gradient_squares_moving_average[
+            new_grad_b = self.exponential_decay * self.gradient_squares_moving_average[
                 idx
-            ][0] + (1 - self.exponential_decay) * (layer.grad_B ** 2)
+            ][1] + (1 - self.exponential_decay) * (layer.grad_b ** 2)
 
             # Update for next time
             self.gradient_squares_moving_average[idx][0] = new_grad_W
-            self.gradient_squares_moving_average[idx][1] = new_grad_B
+            self.gradient_squares_moving_average[idx][1] = new_grad_b
 
             # Compute the RMS of the gradient square MA
             rms_grad_W = np.sqrt(new_grad_W + self.epsilon)
-            rms_grad_B = np.sqrt(new_grad_B + self.epsilon)
+            rms_grad_b = np.sqrt(new_grad_b + self.epsilon)
 
             # Compute the unit corrects RMS
             rms_previous_update_W = np.sqrt(self.previous_update[idx][0] + self.epsilon)
@@ -59,7 +59,7 @@ class Adadelta(Optimiser):
 
             # Compute the updates
             update_W = rms_previous_update_W * layer.grad_W / rms_grad_W
-            update_B = rms_previous_update_B * layer.grad_B / rms_grad_B
+            update_B = rms_previous_update_B * layer.grad_b / rms_grad_b
 
             # Decay on the previous update
             self.previous_update[idx][

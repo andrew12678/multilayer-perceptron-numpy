@@ -12,8 +12,8 @@ class SGD(Optimiser):
         self,
         layers: List[Layer],
         learning_rate: float,
-        weight_decay: float = 0,
-        momentum: float = 0,
+        weight_decay: float,
+        momentum: float,
     ):
 
         """

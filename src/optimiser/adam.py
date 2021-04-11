@@ -9,9 +9,9 @@ class Adam(Optimiser):
         self,
         layers: List[Layer],
         learning_rate: float,
+        weight_decay: float = 0,
         beta1: float = 0.9,
         beta2: float = 0.999,
-        weight_decay: float = 0,
     ):
         """
         Initialise parameters for Adam optimiser. Default values given by the paper: https://arxiv.org/pdf/1412.6980.pdf
@@ -31,12 +31,12 @@ class Adam(Optimiser):
         self.weight_decay = weight_decay
 
         self.v_t = [
-            [np.zeros(layer.grad_W.shape), np.zeros(layer.grad_B.shape)]
+            [np.zeros(layer.grad_W.shape), np.zeros(layer.grad_b.shape)]
             for layer in layers
         ]  # Set this to 0 initially since all exponentially decaying average of past squared gradient are 0
 
         self.m_t = [
-            [np.zeros(layer.grad_W.shape), np.zeros(layer.grad_B.shape)]
+            [np.zeros(layer.grad_W.shape), np.zeros(layer.grad_b.shape)]
             for layer in layers
         ]  # Set this to 0 initially since all exponentially decaying average of past gradients are 0
 
@@ -46,14 +46,14 @@ class Adam(Optimiser):
 
             # Computing exponentially decaying average of past gradients
             new_m_t_W = self.m_t[idx][0] * self.beta1 + (1 - self.beta1) * layer.grad_W
-            new_m_t_B = self.m_t[idx][1] * self.beta1 + (1 - self.beta1) * layer.grad_B
+            new_m_t_B = self.m_t[idx][1] * self.beta1 + (1 - self.beta1) * layer.grad_b
 
             # Computing exponentially decaying average of past gradients squared
             new_v_t_W = self.v_t[idx][0] * self.beta2 + (1 - self.beta2) * (
                 layer.grad_W ** 2
             )
             new_v_t_B = self.v_t[idx][1] * self.beta2 + (1 - self.beta2) * (
-                layer.grad_B ** 2
+                layer.grad_b ** 2
             )
 
             # Update for next time

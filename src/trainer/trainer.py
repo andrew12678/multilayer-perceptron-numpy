@@ -24,7 +24,10 @@ class Trainer:
         optimiser: str,
         learning_rate: float,
         weight_decay: float = 0,
-        momentum: float = None,
+        momentum: float = 0,
+        exponential_decay: float = 0.9,
+        beta1: float = 0.9,
+        beta2: float = 0.999,
     ):
 
         # Set attributes
@@ -47,6 +50,9 @@ class Trainer:
             learning_rate,
             weight_decay,
             momentum,
+            exponential_decay,
+            beta1,
+            beta2,
         )
 
     # Primary method that trains the network
@@ -83,7 +89,7 @@ class Trainer:
                 loss = self.loss(y_batch, output)
 
                 # Display batch loss
-                #print(f"Loss {loss}")
+                # print(f"Loss {loss}")
 
                 # Perform backward propagation and get sensitivity for output layer
                 delta = self.loss.backward()
@@ -150,13 +156,10 @@ class Trainer:
         y_hat, y_true = np.concatenate(y_hat).ravel(), np.concatenate(y_true).ravel()
 
         # Calculate metrics
-        metrics_dict = calculate_metrics(
-            y=y_true,
-            y_hat=y_hat
-        )
+        metrics_dict = calculate_metrics(y=y_true, y_hat=y_hat)
 
         # Add loss to metrics dictionary
-        metrics_dict['loss'] = test_loss
+        metrics_dict["loss"] = test_loss
 
         # Return loss and predictive accuracy of model
         return metrics_dict

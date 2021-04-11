@@ -5,9 +5,7 @@ import numpy as np
 
 
 class Adagrad(Optimiser):
-    def __init__(
-        self, layers: List[Layer], learning_rate: float, weight_decay: float = 0
-    ):
+    def __init__(self, layers: List[Layer], learning_rate: float, weight_decay: float):
         """
         Initialise the Adagrad with parameters.
         Args:
@@ -19,7 +17,7 @@ class Adagrad(Optimiser):
         self.lr = learning_rate
         self.weight_decay = weight_decay
         self.gradient_sum_squares = [
-            [np.zeros(layer.grad_W.shape), np.zeros(layer.grad_B.shape)]
+            [np.zeros(layer.grad_W.shape), np.zeros(layer.grad_b.shape)]
             for layer in layers
         ]  # Set this to 0 initially since all gradients are 0
         self.epsilon = 1e-9
@@ -29,7 +27,7 @@ class Adagrad(Optimiser):
         for idx, layer in enumerate(self.layers):
             # Update the gradient sum of squares for the layer
             self.gradient_sum_squares[idx][0] += layer.grad_W ** 2
-            self.gradient_sum_squares[idx][1] += layer.grad_B ** 2
+            self.gradient_sum_squares[idx][1] += layer.grad_b ** 2
 
             # Calculate the modified learning rates for both parameters
             modified_learning_rate_W = self.lr / np.sqrt(
@@ -45,4 +43,4 @@ class Adagrad(Optimiser):
             )
 
             # Update biases
-            layer.biases -= modified_learning_rate_B * layer.grad_B
+            layer.biases -= modified_learning_rate_B * layer.grad_b

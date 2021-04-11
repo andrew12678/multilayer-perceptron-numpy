@@ -4,3 +4,4 @@ pip==21.0.1
 scipy==1.6.1
 setuptools==54.1.2
 threadpoolctl==2.1.0
+PyYAML=5.4.1
