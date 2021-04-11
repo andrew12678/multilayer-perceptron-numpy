@@ -43,7 +43,7 @@ class Adadelta(Optimiser):
             ][0] + (1 - self.exponential_decay) * (layer.grad_W ** 2)
             new_grad_b = self.exponential_decay * self.gradient_squares_moving_average[
                 idx
-            ][0] + (1 - self.exponential_decay) * (layer.grad_b ** 2)
+            ][1] + (1 - self.exponential_decay) * (layer.grad_b ** 2)
 
             # Update for next time
             self.gradient_squares_moving_average[idx][0] = new_grad_W

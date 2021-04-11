@@ -48,8 +48,14 @@ def create_loss_function(loss_name: str):
 
 
 def create_optimiser(
-    optimiser_name: str, layers: list, lr: float, weight_decay: float, momentum: float,
-    exponential_decay: float, beta1: float, beta2: float
+    optimiser_name: str,
+    layers: list,
+    lr: float,
+    weight_decay: float,
+    momentum: float,
+    exponential_decay: float,
+    beta1: float,
+    beta2: float,
 ):
 
     """

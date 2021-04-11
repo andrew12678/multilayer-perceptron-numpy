@@ -5,9 +5,7 @@ import numpy as np
 
 
 class Adagrad(Optimiser):
-    def __init__(
-        self, layers: List[Layer], learning_rate: float, weight_decay: float
-    ):
+    def __init__(self, layers: List[Layer], learning_rate: float, weight_decay: float):
         """
         Initialise the Adagrad with parameters.
         Args:
