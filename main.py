@@ -36,9 +36,9 @@ def run():
         y=y_train,
         model=model,
         batch_size=64,
-        n_epochs=10,
+        n_epochs=3,
         loss="cross_entropy",
-        optimiser="sgd",
+        optimiser="adadelta",
         learning_rate=0.001,
         weight_decay=0.0,
         momentum=0.9,
@@ -48,7 +48,8 @@ def run():
     trained_model = trainer.train()
 
     # Test model
-    trainer.validation(X=X_test, y=y_test)
+    metrics = trainer.validation(X=X_test, y=y_test)
+    print(metrics)
 
 
 def run_kfolds():
