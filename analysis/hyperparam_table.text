@@ -5,7 +5,6 @@
 cross\_entropy &       sgd &          64 &           5 &           0.10 &             0 &         0 &           2 &          128 &       relu &             0 &                False & 0.144862 \\
 cross\_entropy &       sgd &          64 &           5 &           0.10 &             0 &         0 &           2 &           64 &       relu &             0 &                False & 0.148958 \\
 cross\_entropy &       sgd &          64 &           2 &           0.10 &             0 &         0 &           2 &          128 &       relu &             0 &                False & 0.153593 \\
-cross\_entropy &       sgd &         256 &           5 &           0.10 &             0 &         0 &           2 &          128 &       relu &             0 &                False & 0.154400 \\
 cross\_entropy &       sgd &          64 &           2 &           0.10 &             0 &         0 &           2 &           64 &       relu &             0 &                False & 0.156662 \\
 cross\_entropy &       sgd &         256 &           5 &           0.10 &             0 &         0 &           2 &           64 &       relu &             0 &                False & 0.158188 \\
 cross\_entropy &       sgd &          64 &           5 &           0.01 &             0 &         0 &           2 &          128 &       relu &             0 &                False & 0.164043 \\

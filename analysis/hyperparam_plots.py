@@ -8,7 +8,8 @@ def write_hyperparams_table(args):
     with open(args.results_file, "r") as f:
         data = json.load(f)[0]
     df = pd.DataFrame(data)
-    df = df.sort_values("cv_loss", ascending=True, ignore_index=True)
+    df = df[:15].sort_values("cv_loss", ascending=True, ignore_index=True)
+    print(df)
     # Save the top 15 values to a latex table
     # Note that these tables are currently too big for report (even in single column appendix)
     with open("analysis/hyperparam_table.text", "w") as f:
