@@ -105,13 +105,14 @@ def run_experiment(args):
         # Add loss to total
         acc_loss += val_results["loss"]
 
+
     test_results = trainer.validation(X=X_test, y=y_test)
 
     print(f"Trained on params: {params}")
-    print(f"Overall cross-validation loss: {acc_loss}")
+    print(f"Overall cross-validation loss: {acc_loss / len(splits)}")
     print(f"Overall test set results: {test_results}")
 
-    summary = {'params': params, 'cv_loss': acc_loss, 'test_errors': test_results}
+    summary = {'params': params, 'cv_loss': acc_loss / len(splits), 'test_errors': test_results}
     return summary
 
 
