@@ -1,5 +1,6 @@
 import numpy as np
 import time
+from datetime import datetime
 import yaml
 import itertools
 import argparse
@@ -66,8 +67,9 @@ def run(args):
     print(f"Overall training loss: {train_loss}")
     print(f"Overall test set results: {test_metrics}")
 
+
 def run_experiment(args):
-    params, X_train, y_train, n_classes, splits, X_test, y_test = args
+    params, X_train, y_train, n_classes, splits = args
     layer_sizes = create_layer_sizes(
         X_train.shape[1], n_classes, params["num_hidden"], params["hidden_size"]
     )
@@ -114,14 +116,11 @@ def run_experiment(args):
         # Add loss to total
         acc_loss += val_results["loss"]
 
-
-    test_results = trainer.validation(X=X_test, y=y_test)
+    cv_loss = acc_loss / len(splits)
 
     print(f"Trained on params: {params}")
-    print(f"Overall cross-validation loss: {acc_loss / len(splits)}")
-    print(f"Overall test set results: {test_results}")
-
-    summary = {'params': params, 'cv_loss': acc_loss / len(splits), 'test_errors': test_results}
+    print(f"Overall cross-validation loss: {cv_loss}")
+    summary = {**params, "cv_loss": cv_loss}
     return summary
 
 
@@ -138,9 +137,7 @@ def run_kfolds(args):
     # Load hyperparameters from file
     with open(args.config, "r") as f:
         hyperparam_grid = yaml.safe_load(f)[args.hyperparams]
-
-    # Print set of possible hyperparameters
-    print("Hyperparameter setting ranges", hyperparam_grid)
+    # print("Hyperparameter setting ranges", hyperparam_grid)
 
     # Setup grid search by enumerating all possible combination of parameters in hyperparam_grid
     # e.g. {'batch_size': [24, 48], 'num_epochs': [2]} -> [{'batch_size': 24, 'num_epochs': 2}
@@ -154,7 +151,7 @@ def run_kfolds(args):
     pool_args = []
 
     for p in param_list:
-        pool_args.append((p, X_train, y_train, n_classes, splits, X_test, y_test))
+        pool_args.append((p, X_train, y_train, n_classes, splits))
 
     summary = []
     if args.processes > 1:
@@ -165,8 +162,11 @@ def run_kfolds(args):
         for p in pool_args:
             summary.append(run_experiment(p))
 
-    # Write results to file
-    with open(args.results_file, 'w+') as f:
+    # Write results to unique file
+    results_file = (
+        f"results/{args.hyperparams}_{datetime.now().strftime('%Y%m%d%H%M%S')}.json"
+    )
+    with open(results_file, "w+") as f:
         json.dump(summary, f)
 
 
@@ -194,9 +194,6 @@ def arg_parser():
     )
     parser.add_argument(
         "-s", "--seed", default=42, type=int, help="Random seed used for experiment"
-    )
-    parser.add_argument(
-        "-r", "--results_file", default="results/test.json", type=str, help="File to write kfold results"
     )
     args = parser.parse_args()
     return args
