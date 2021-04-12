@@ -66,7 +66,6 @@ class MLP:
 
                 # Append activation layer to layers list
                 self.layers.append(create_activation_layer(act))
-
     # Complete forward pass of the neural network
     def forward(self, input: np.ndarray):
 

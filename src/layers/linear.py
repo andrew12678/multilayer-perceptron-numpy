@@ -56,13 +56,11 @@ class Linear(Layer):
 
         # Check if currently training
         if self.training:
-
             # Perform dropout/scaling and set input
             self.input = (x * self.dropout_mask) * (1 / (1 - self.dropout_rate))
 
         # Check if being used for testing/inference
         else:
-
             # Use standard network with no dropout/scaling
             self.input = x
 

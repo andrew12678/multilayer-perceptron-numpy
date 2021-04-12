@@ -23,20 +23,23 @@ def run(args):
     with open(args.config, "r") as f:
         p = yaml.safe_load(f)[args.hyperparams]
 
-    # Print hyperparameters
-    # for key, value in p.items():
-    #     print(key, ":", value)
-
     # Create a list of tuples indicating the size of each network layer
     layer_sizes = create_layer_sizes(
         X_train.shape[1], n_classes, p["num_hidden"], p["hidden_size"]
     )
 
+    # Set the activations for each network layer. e.g. if relu and 2 hidden, then our activations
+    # are ["relu", "relu", None] since we don't have an activation on the final layer
+    activations = [p["activation"]] * p["num_hidden"] + [None]
+
+    # Set the dropout rate for each layer, keeping the first layer as 0
+    dropout_rates = [0] + [p["dropout_rate"]] * p["num_hidden"]
+
     # Create multi-layer perceptron model (i.e build model object)
     model = MLP(
         layer_sizes=layer_sizes,
-        activations=p["activations"],
-        dropout_rates=p["dropout_rates"],
+        activations=activations,
+        dropout_rates=dropout_rates,
         batch_normalisation=p["batch_normalisation"],
     )
 
@@ -68,6 +71,12 @@ def run_experiment(args):
     layer_sizes = create_layer_sizes(
         X_train.shape[1], n_classes, params["num_hidden"], params["hidden_size"]
     )
+    # Set the activations for each network layer. e.g. if relu and 2 hidden, then our activations
+    # are ["relu", "relu", None] since we don't have an activation on the final layer
+    activations = [params["activation"]] * params["num_hidden"] + [None]
+
+    # Set the dropout rate for each layer, keeping the first layer as 0
+    dropout_rates = [0] + [params["dropout_rate"]] * params["num_hidden"]
 
     # Instantiate accumulated loss tracker
     acc_loss = 0
@@ -77,8 +86,8 @@ def run_experiment(args):
         # Define model using current architecture
         model = MLP(
             layer_sizes=layer_sizes,
-            activations=params["activations"],
-            dropout_rates=params["dropout_rates"],
+            activations=activations,
+            dropout_rates=dropout_rates,
             batch_normalisation=params["batch_normalisation"],
         )
 

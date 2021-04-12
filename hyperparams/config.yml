@@ -8,22 +8,22 @@ params1:
     momentum: 0.9
     num_hidden: 2
     hidden_size: 64
-    activations: ["relu", "relu", null]
-    dropout_rates: [0, 0.8, 0.8]
+    activation: "relu"
+    dropout_rate: 0.8
     batch_normalisation: True
 
 params2:
     loss: "cross_entropy"
     optimiser: "sgd"
     batch_size: 128
-    num_epochs: 5
-    learning_rate: 0.01
+    num_epochs: 20
+    learning_rate: 0.1
     weight_decay: 0.0
     momentum: 0.0
     num_hidden: 2
     hidden_size: 64
-    activations: ["relu", "relu", null]
-    dropout_rates: [0., 0., 0.]
+    activation: "relu"
+    dropout_rate: 0.8
     batch_normalisation: False
 
 grid1:
@@ -36,34 +36,48 @@ grid1:
     momentum: [0.95, 0.9, 0.8, 0]
     num_hidden: [2]
     hidden_size: [64, 128, 256]
-    activations: [["relu", "relu", null], ["sigmoid", "sigmoid", null], ["tanh", "tanh", null]]
-    dropout_rates: [[0, 0.8, 0.8],[0, 0.5, 0.5],[0, 0, 0]]
+    activation: ["relu", "sigmoid", "tanh"]
+    dropout_rate: [0.8, 0.5]
     batch_normalisation: [True, False]
 
 grid2:
     loss: ["cross_entropy"]
     optimiser: ["sgd"]
-    batch_size: [128]
-    num_epochs: [2]
-    learning_rate: [0.01]
-    weight_decay: [0.001, 0]
-    momentum: [0.9]
-    num_hidden: [2]
-    hidden_size: [64]
-    activations: [["relu", "relu", null]]
-    dropout_rates: [[0, 0.8, 0.8]]
-    batch_normalisation: [True]
-
-grid3:
-    loss: ["cross_entropy"]
-    optimiser: ["sgd"]
-    batch_size: [128]
-    num_epochs: [2, 5]
+    batch_size: [256]
+    num_epochs: [20]
     learning_rate: [0.1]
     weight_decay: [0]
     momentum: [0]
     num_hidden: [2]
     hidden_size: [64]
-    activations: [["relu", "relu", null]]
-    dropout_rates: [[0, 0, 0]]
+    activation: ["relu"]
+    dropout_rate: [0]
+    batch_normalisation: [False]
+
+grid3:
+    loss: ["cross_entropy"]
+    optimiser: ["sgd"]
+    batch_size: [64, 256]
+    num_epochs: [10, 40, 100]
+    learning_rate: [0.01, 0.1]
+    weight_decay: [0, 0.001, 0.0001]
+    momentum: [0, 0.9, 0.4]
+    num_hidden: [2]
+    hidden_size: [64]
+    activation: "relu"
+    dropout_rate: [0, 0.5]
+    batch_normalisation: [False]
+
+grid3:
+    loss: ["cross_entropy"]
+    optimiser: ["sgd"]
+    batch_size: [64, 256]
+    num_epochs: [10, 40, 100]
+    learning_rate: [0.01, 0.1]
+    weight_decay: [0, 0.001, 0.0001]
+    momentum: [0, 0.9, 0.4]
+    num_hidden: [2]
+    hidden_size: [64]
+    activation: ["relu"]
+    dropout_rate: [0.5]
     batch_normalisation: [False]
