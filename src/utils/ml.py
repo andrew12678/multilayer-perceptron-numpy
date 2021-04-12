@@ -173,6 +173,7 @@ class Batcher:
         # Get the number of batches to make
         self.count_batches = math.ceil(data_size / batch_size)
 
+    # Generate array containing arrays of data sample indices for mini-batching
     def generate_batch_indices(self):
 
         """
