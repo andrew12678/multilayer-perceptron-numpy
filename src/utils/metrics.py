@@ -66,11 +66,11 @@ def f1_macro(y: np.ndarray, y_hat: np.ndarray):
         fn = np.sum((y == current_label) & (y_hat != current_label))
 
         # Calculate precision and recall
-        precision = tp / (tp + fp)
-        recall = tp / (tp + fn)
+        precision = tp / (tp + fp + 1e-15)
+        recall = tp / (tp + fn + 1e-15)
 
         # Calculate f1 score for current label
-        f1 = 2 * (precision * recall) / (precision + recall)
+        f1 = 2 * (precision * recall) / (precision + recall + 1e-15)
 
         # Append f1 score to list
         f1_scores.append(f1)
