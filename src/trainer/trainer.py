@@ -104,6 +104,9 @@ class Trainer:
             if epoch % 5 == 0:
                 # Display average loss
                 print(f"Epoch: {epoch}, loss: {acc_loss / (epoch * len(batches))}")
+                # Kill the training if our acc_loss is a nan
+                if np.isnan(acc_loss):
+                    return np.nan
 
         # Return training loss
         return acc_loss / (self.n_epochs * len(batches))

@@ -108,10 +108,15 @@ def run_experiment(args):
         )
 
         # Train model on training set
-        _ = trainer.train()
+        train_loss = trainer.train()
+
+        # Kill search if training loss is nan
+        if np.isnan(train_loss):
+            return {**params, "cv_loss": np.nan}
 
         # Extract validation loss and predicted labels
         val_results = trainer.validation(X=X_val_k, y=y_val_k)
+
 
         # Add loss to total
         acc_loss += val_results["loss"]

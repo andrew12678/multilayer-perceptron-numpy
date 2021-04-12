@@ -2,20 +2,20 @@
 \toprule
          loss & optimiser &  batch\_size &  num\_epochs &  learning\_rate &  weight\_decay &  momentum &  num\_hidden &  hidden\_size & activation &  dropout\_rate &  batch\_normalisation &  cv\_loss \\
 \midrule
-cross\_entropy &       sgd &          64 &           5 &           0.10 &             0 &         0 &           2 &          128 &       relu &             0 &                False & 0.144862 \\
-cross\_entropy &       sgd &          64 &           5 &           0.10 &             0 &         0 &           2 &           64 &       relu &             0 &                False & 0.148958 \\
-cross\_entropy &       sgd &          64 &           2 &           0.10 &             0 &         0 &           2 &          128 &       relu &             0 &                False & 0.153593 \\
-cross\_entropy &       sgd &          64 &           2 &           0.10 &             0 &         0 &           2 &           64 &       relu &             0 &                False & 0.156662 \\
-cross\_entropy &       sgd &         256 &           5 &           0.10 &             0 &         0 &           2 &           64 &       relu &             0 &                False & 0.158188 \\
-cross\_entropy &       sgd &          64 &           5 &           0.01 &             0 &         0 &           2 &          128 &       relu &             0 &                False & 0.164043 \\
-cross\_entropy &       sgd &         256 &           2 &           0.10 &             0 &         0 &           2 &          128 &       relu &             0 &                False & 0.165431 \\
-cross\_entropy &       sgd &          64 &           5 &           0.01 &             0 &         0 &           2 &           64 &       relu &             0 &                False & 0.169152 \\
-cross\_entropy &       sgd &         256 &           2 &           0.10 &             0 &         0 &           2 &           64 &       relu &             0 &                False & 0.169988 \\
-cross\_entropy &       sgd &          64 &           2 &           0.01 &             0 &         0 &           2 &          128 &       relu &             0 &                False & 0.176012 \\
-cross\_entropy &       sgd &          64 &           2 &           0.01 &             0 &         0 &           2 &           64 &       relu &             0 &                False & 0.181944 \\
-cross\_entropy &       sgd &         256 &           5 &           0.01 &             0 &         0 &           2 &          128 &       relu &             0 &                False & 0.182220 \\
-cross\_entropy &       sgd &         256 &           5 &           0.01 &             0 &         0 &           2 &           64 &       relu &             0 &                False & 0.188653 \\
-cross\_entropy &       sgd &         256 &           2 &           0.01 &             0 &         0 &           2 &          128 &       relu &             0 &                False & 0.196328 \\
-cross\_entropy &       sgd &         256 &           2 &           0.01 &             0 &         0 &           2 &           64 &       relu &             0 &                False & 0.203646 \\
+cross\_entropy &       sgd &          64 &         100 &           0.01 &        0.0001 &       0.5 &           2 &          128 &       relu &           0.0 &                False & 0.129295 \\
+cross\_entropy &       sgd &         256 &         100 &           0.10 &        0.0010 &       0.5 &           2 &          128 &       relu &           0.0 &                False & 0.131903 \\
+cross\_entropy &       sgd &         256 &         100 &           0.10 &        0.0010 &       0.9 &           2 &          128 &       relu &           0.0 &                 True & 0.133179 \\
+cross\_entropy &       sgd &         256 &          40 &           0.10 &        0.0010 &       0.9 &           2 &          128 &       relu &           0.0 &                 True & 0.133413 \\
+cross\_entropy &       sgd &          64 &          40 &           0.01 &        0.0001 &       0.5 &           2 &          128 &       relu &           0.0 &                False & 0.133574 \\
+cross\_entropy &       sgd &          64 &          40 &           0.01 &        0.0001 &       0.5 &           2 &          128 &       relu &           0.0 &                 True & 0.133820 \\
+cross\_entropy &       sgd &         256 &         100 &           0.01 &        0.0001 &       0.5 &           2 &          128 &       relu &           0.0 &                 True & 0.133906 \\
+cross\_entropy &       sgd &          64 &         100 &           0.01 &        0.0001 &       0.5 &           2 &           64 &       relu &           0.0 &                False & 0.134075 \\
+cross\_entropy &       sgd &         256 &          40 &           0.10 &        0.0010 &       0.5 &           2 &          128 &       relu &           0.0 &                False & 0.134087 \\
+cross\_entropy &       sgd &         256 &         100 &           0.10 &        0.0010 &       0.5 &           2 &           64 &       relu &           0.0 &                False & 0.134696 \\
+cross\_entropy &       sgd &         256 &         100 &           0.01 &        0.0001 &       0.5 &           2 &          128 &       relu &           0.0 &                False & 0.134698 \\
+cross\_entropy &       sgd &         256 &         100 &           0.01 &        0.0001 &       0.0 &           2 &          128 &       relu &           0.0 &                 True & 0.135079 \\
+cross\_entropy &       sgd &          64 &         100 &           0.01 &        0.0001 &       0.5 &           2 &          128 &       relu &           0.0 &                 True & 0.135432 \\
+cross\_entropy &       sgd &         256 &         100 &           0.10 &        0.0010 &       0.5 &           2 &          128 &       relu &           0.0 &                 True & 0.135572 \\
+cross\_entropy &       sgd &         256 &         100 &           0.10 &        0.0010 &       0.9 &           2 &           64 &       relu &           0.0 &                 True & 0.135939 \\
 \bottomrule
 \end{tabular}
