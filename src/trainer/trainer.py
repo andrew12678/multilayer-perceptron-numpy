@@ -61,20 +61,20 @@ class Trainer:
         # Ensure model is in training mode
         self.model.train()
 
+        # Instantiate accumulated loss variable for training
+        acc_loss = 0
+
         # Loop through designated number of epochs
         for epoch in range(1, self.n_epochs + 1):
 
             # Display epoch numbers
-            print(f"Starting epoch: {epoch}")
+            # print(f"Starting epoch: {epoch}")
 
             # Zeroing the gradients
             self.model.zero_grad()
 
             # Get batches indices for this epoch
             batches = self.batcher.generate_batch_indices()
-
-            # Instantiate accumulated loss variable for current epoch
-            acc_loss = 0
 
             # Loop through all batches
             for batch in batches:
@@ -87,9 +87,6 @@ class Trainer:
 
                 # Calculate loss for current batch
                 loss = self.loss(y_batch, output)
-
-                # Display batch loss
-                # print(f"Loss {loss}")
 
                 # Perform backward propagation and get sensitivity for output layer
                 delta = self.loss.backward()
@@ -104,13 +101,12 @@ class Trainer:
                 acc_loss += loss
 
             # Check if epoch is multiple of 5
-            if epoch % 5 == 4:
+            if epoch % 5 == 0:
+                # Display average loss
+                print(f"Epoch: {epoch}, loss: {acc_loss / (epoch * len(batches))}")
 
-                # Display average loss for all batches in the current epoch
-                print(f"Epoch: {epoch + 1}, loss: {acc_loss / len(batches)}")
-
-        # Return trained model
-        return self.model
+        # Return training loss
+        return acc_loss / (self.n_epochs * len(batches))
 
     # Secondary method that evaluates the network performance on a separate test dataset
     def validation(self, X: np.ndarray, y: np.ndarray):

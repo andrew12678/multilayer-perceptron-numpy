@@ -4,6 +4,7 @@ import yaml
 import itertools
 import argparse
 from multiprocessing import Pool
+import json
 
 from src.trainer.trainer import Trainer
 from src.utils.io import load_directory
@@ -12,7 +13,6 @@ from src.utils.ml import one_hot, create_stratified_kfolds, create_layer_sizes
 
 
 def run(args):
-
     # Import training and test data
     X_train, y_train, X_test, y_test = load_directory("data")
 
@@ -24,8 +24,8 @@ def run(args):
         p = yaml.safe_load(f)[args.hyperparams]
 
     # Print hyperparameters
-    for key, value in p.items():
-        print(key, ":", value)
+    # for key, value in p.items():
+    #     print(key, ":", value)
 
     # Create a list of tuples indicating the size of each network layer
     layer_sizes = create_layer_sizes(
@@ -55,15 +55,16 @@ def run(args):
     )
 
     # Train model
-    trained_model = trainer.train()
+    train_loss = trainer.train()
 
     # Test model
-    metrics = trainer.validation(X=X_test, y=y_test)
-    print(metrics)
-
+    test_metrics = trainer.validation(X=X_test, y=y_test)
+    print(f"Trained on params: {p}")
+    print(f"Overall training loss: {train_loss}")
+    print(f"Overall test set results: {test_metrics}")
 
 def run_experiment(args):
-    params, X_train, y_train, n_classes, splits = args
+    params, X_train, y_train, n_classes, splits, X_test, y_test = args
     layer_sizes = create_layer_sizes(
         X_train.shape[1], n_classes, params["num_hidden"], params["hidden_size"]
     )
@@ -83,8 +84,8 @@ def run_experiment(args):
 
         # Create trainer object to handle train each epoch (define input data and parameters)
         trainer = Trainer(
-            X=X_train,
-            y=y_train,
+            X=X_train_k,
+            y=y_train_k,
             model=model,
             batch_size=params["batch_size"],
             n_epochs=params["num_epochs"],
@@ -96,35 +97,25 @@ def run_experiment(args):
         )
 
         # Train model on training set
-        trainer.train()
+        _ = trainer.train()
 
-        # Perform validation
         # Extract validation loss and predicted labels
-        results = trainer.validation(X=X_val_k, y=y_val_k)
-
-        # Get model predictions for validation set
-        # fold_preds = model.forward(X_val_k)
-
-        # Get model loss on validation set
-        # fold_loss = trainer.loss(one_hot(y_val_k), fold_preds)
-
-        # Display loss for current fold
-        # print(f"Loss for fold {k + 1}: {results['loss']}")
-        # print(f"accuracy: {results['accuracy']}")
-        # print(f"f1_macro: {results['f1_macro']}")
+        val_results = trainer.validation(X=X_val_k, y=y_val_k)
 
         # Add loss to total
-        acc_loss += results["loss"]
+        acc_loss += val_results["loss"]
 
-    print(f"Trained on params:")
-    for k, v in params.items():
-        print(f"{k}: {v}")
-    # Display the overall cross-validation loss across all folds
+    test_results = trainer.validation(X=X_test, y=y_test)
+
+    print(f"Trained on params: {params}")
     print(f"Overall cross-validation loss: {acc_loss}")
+    print(f"Overall test set results: {test_results}")
+
+    summary = {'params': params, 'cv_loss': acc_loss, 'test_errors': test_results}
+    return summary
 
 
 def run_kfolds(args):
-
     # Load training and test data
     X_train, y_train, X_test, y_test = load_directory("data")
 
@@ -138,9 +129,8 @@ def run_kfolds(args):
     with open(args.config, "r") as f:
         hyperparam_grid = yaml.safe_load(f)[args.hyperparams]
 
-    # Print hyperparameters
-    for key, value in hyperparam_grid.items():
-        print(key, ":", value)
+    # Print set of possible hyperparameters
+    print("Hyperparameter setting ranges", hyperparam_grid)
 
     # Setup grid search by enumerating all possible combination of parameters in hyperparam_grid
     # e.g. {'batch_size': [24, 48], 'num_epochs': [2]} -> [{'batch_size': 24, 'num_epochs': 2}
@@ -154,15 +144,20 @@ def run_kfolds(args):
     pool_args = []
 
     for p in param_list:
-        pool_args.append((p, X_train, y_train, n_classes, splits))
+        pool_args.append((p, X_train, y_train, n_classes, splits, X_test, y_test))
 
+    summary = []
     if args.processes > 1:
         print(f"Running with {args.processes} processors.")
         with Pool(processes=args.processes) as pool:
-            pool.map(run_experiment, pool_args)
+            summary.append(pool.map(run_experiment, pool_args))
     else:
         for p in pool_args:
-            run_experiment(p)
+            summary.append(run_experiment(p))
+
+    # Write results to file
+    with open(args.results_file, 'w+') as f:
+        json.dump(summary, f)
 
 
 def arg_parser():
@@ -189,6 +184,9 @@ def arg_parser():
     )
     parser.add_argument(
         "-s", "--seed", default=42, type=int, help="Random seed used for experiment"
+    )
+    parser.add_argument(
+        "-r", "--results_file", default="results/test.json", type=str, help="File to write kfold results"
     )
     args = parser.parse_args()
     return args
