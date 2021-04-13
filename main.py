@@ -80,8 +80,8 @@ def run_experiment(args):
     # Set the dropout rate for each layer, keeping the first layer as 0
     dropout_rates = [0] + [params["dropout_rate"]] * params["num_hidden"]
 
-    # Instantiate accumulated loss tracker
-    acc_loss = 0
+    # Instantiate accumulated trackers of loss, accuracy, and f1_macro
+    metrics = {"loss": 0, "accuracy": 0, "f1_macro": 0}
 
     # Train and test on each k-fold split
     for k, (X_train_k, y_train_k, X_val_k, y_val_k) in enumerate(splits):
@@ -112,20 +112,23 @@ def run_experiment(args):
 
         # Kill search if training loss is nan
         if np.isnan(train_loss):
-            return {**params, "cv_loss": np.nan}
+            return {**params, "loss": np.nan, "accuracy": np.nan, "f1_macro": np.nan}
 
         # Extract validation loss and predicted labels
         val_results = trainer.validation(X=X_val_k, y=y_val_k)
 
 
-        # Add loss to total
-        acc_loss += val_results["loss"]
+        # Accumulate loss, accuracy, f1_macro
+        for met in metrics:
+            metrics[met] += val_results[met]
 
-    cv_loss = acc_loss / len(splits)
+    # Divide the total accumualted metrics by the number of folds
+    for met in metrics:
+        metrics[met] /= len(splits)
 
     print(f"Trained on params: {params}")
-    print(f"Overall cross-validation loss: {cv_loss}")
-    summary = {**params, "cv_loss": cv_loss}
+    print(f"Overall cross-validation loss: {metrics['loss']}")
+    summary = {**params, **metrics}
     return summary
 
 
