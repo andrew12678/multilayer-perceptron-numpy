@@ -32,9 +32,7 @@ class Linear(Layer):
 
         # Set dropout rate as attribute
         self.dropout_rate = dropout_rate
-
-        # Create dropout vector that contains which neurons to switch off
-        self.dropout_mask = np.random.binomial(size=n_in, n=1, p=1 - dropout_rate)
+        self.dropout_mask = None
 
         # Initialise input & output attributes to store later
         self.input = None
@@ -56,6 +54,9 @@ class Linear(Layer):
 
         # Check if currently training
         if self.training:
+            # Create dropout vector that contains which neurons to switch off
+            self.dropout_mask = np.random.binomial(size=x.shape[1], n=1, p=1 - self.dropout_rate)
+
             # Perform dropout/scaling and set input
             self.input = (x * self.dropout_mask) * (1 / (1 - self.dropout_rate))
 
