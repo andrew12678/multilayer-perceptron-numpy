@@ -117,7 +117,6 @@ def run_experiment(args):
         # Extract validation loss and predicted labels
         val_results = trainer.validation(X=X_val_k, y=y_val_k)
 
-
         # Accumulate loss, accuracy, f1_macro
         for met in metrics:
             metrics[met] += val_results[met]

@@ -11,9 +11,9 @@ def write_hyperparams_table(data):
     acc_norm = (df["accuracy"] - df["accuracy"].mean()) / df["accuracy"].std()
     f1_macro_norm = (df["f1_macro"] - df["f1_macro"].mean()) / df["f1_macro"].std()
     # Combine metrics by taking their sum (we use a negative for loss since we aim to minimise it)
-    df["combined_metric"] = acc_norm - loss_norm + f1_macro_norm
+    df["validation_score"] = acc_norm - loss_norm + f1_macro_norm
 
-    df_sorted = df.sort_values("combined_metric", ascending=False, ignore_index=True)
+    df_sorted = df.sort_values("validation_score", ascending=False, ignore_index=True)
     print(df_sorted)
     # Save the top 15 values to a latex table
     # Note that these tables are currently too big for report (even in single column appendix)
@@ -34,6 +34,7 @@ def arg_parser():
     args = parser.parse_args()
     return args
 
+
 def combine_results(all_files):
     data = []
     for filename in all_files:
@@ -41,6 +42,7 @@ def combine_results(all_files):
             data.append(json.load(f)[0])
     flat_data = [item for sublist in data for item in sublist]
     return flat_data
+
 
 # Run script
 if __name__ == "__main__":
