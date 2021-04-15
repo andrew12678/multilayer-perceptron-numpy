@@ -4,14 +4,17 @@ import argparse
 import pandas as pd
 
 
-def write_hyperparams_table(args):
-    with open(args.results_file, "r") as f:
-        data = json.load(f)[0]
+def write_hyperparams_table(data):
     df = pd.DataFrame(data)
-    df_sorted = df.sort_values("cv_loss", ascending=True, ignore_index=True)
-    print(df)
+    # Create normalised loss, accuracy, and f1_macro
+    loss_norm = (df["loss"] - df["loss"].mean()) / df["loss"].std()
+    acc_norm = (df["accuracy"] - df["accuracy"].mean()) / df["accuracy"].std()
+    f1_macro_norm = (df["f1_macro"] - df["f1_macro"].mean()) / df["f1_macro"].std()
+    # Combine metrics by taking their sum (we use a negative for loss since we aim to minimise it)
+    df["combined_metric"] = acc_norm - loss_norm + f1_macro_norm
+
+    df_sorted = df.sort_values("combined_metric", ascending=False, ignore_index=True)
     print(df_sorted)
-    breakpoint()
     # Save the top 15 values to a latex table
     # Note that these tables are currently too big for report (even in single column appendix)
     with open("analysis/hyperparam_table.text", "w") as f:
@@ -22,20 +25,31 @@ def arg_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-rf",
-        "--results_file",
+        "--result_files",
+        nargs="+",
         default="results/test.json",
         type=str,
-        help="Results file from cross validation experiments",
+        help="Result files from cross validation experiments (one or multiple)",
     )
     args = parser.parse_args()
     return args
 
+def combine_results(all_files):
+    data = []
+    for filename in all_files:
+        with open(filename, "r") as f:
+            data.append(json.load(f)[0])
+    flat_data = [item for sublist in data for item in sublist]
+    return flat_data
 
 # Run script
 if __name__ == "__main__":
     start_time = time.time()
     args = arg_parser()
-    write_hyperparams_table(args)
+
+    data = combine_results(args.result_files)
+    write_hyperparams_table(data)
+
     # Set a random seed to reproduce results
     # np.random.seed(args.seed)
 
