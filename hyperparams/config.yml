@@ -12,19 +12,19 @@ params1:
     dropout_rate: 0
     batch_normalisation: True
 
-params2:
+params-best:
     loss: "cross_entropy"
     optimiser: "sgd"
     batch_size: 64
-    num_epochs: 100
-    learning_rate: 0.01
-    weight_decay: 0.0001
-    momentum: 0.5
-    num_hidden: 2
-    hidden_size: 128
+    num_epochs: 300
+    learning_rate: 0.1
+    weight_decay: 0.0
+    momentum: 0.9
+    num_hidden: 4
+    hidden_size: 256
     activation: "relu"
-    dropout_rate: 0.0
-    batch_normalisation: False
+    dropout_rate: 0.3
+    batch_normalisation: True
 
 grid-local:
     loss: ["cross_entropy"]
@@ -100,7 +100,7 @@ grid-search2:
     loss: ["cross_entropy"]
     optimiser: ["sgd"]
     batch_size: [64]
-    num_epochs: [140, 180, 250]
+    num_epochs: [200, 300]
     learning_rate: [0.1]
     weight_decay: [0]
     momentum: [0.9. 0.95]
@@ -108,6 +108,20 @@ grid-search2:
     hidden_size: [128, 256]
     activation: ["relu"]
     dropout_rate: [0.3, 0.5]
+    batch_normalisation: [True]
+
+grid-search3:
+    loss: ["cross_entropy"]
+    optimiser: ["sgd"]
+    batch_size: [64]
+    num_epochs: [300, 600, 1200]
+    learning_rate: [0.1]
+    weight_decay: [0]
+    momentum: [0.9]
+    num_hidden: [4]
+    hidden_size: [256, 512]
+    activation: ["relu"]
+    dropout_rate: [0.3]
     batch_normalisation: [True]
 
 grid-ablation:
@@ -127,12 +141,12 @@ grid-ablation:
 grid-ablation2:
     loss: ["cross_entropy"]
     optimiser: ["sgd"]
-    batch_size: [64]
+    batch_size: [1, 64]
     num_epochs: [100]
     learning_rate: [0.1]
-    weight_decay: [0]
+    weight_decay: [0, 0.001]
     momentum: [0, 0.9]
-    num_hidden: [0, 1, 2, 3, 4]
+    num_hidden: [0, 4]
     hidden_size: [128]
     activation: ["relu"]
     dropout_rate: [0, 0.3]

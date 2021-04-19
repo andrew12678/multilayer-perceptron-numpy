@@ -1,0 +1,10 @@
+\begin{tabular}{lrrrrrr}
+\toprule
+{} & \multicolumn{2}{l}{batch\_size} & \multicolumn{2}{l}{weight\_decay} & \multicolumn{2}{l}{momentum} \\
+{} &          N &      Y &            N &      Y &        N &      Y \\
+\midrule
+Train &      0.154 &  0.152 &        0.154 &  0.153 &    0.153 &  0.154 \\
+Val   &      1.866 &  0.156 &        0.159 &  0.160 &    0.182 &  0.160 \\
+Test  &      0.156 &  0.153 &        0.156 &  0.154 &    0.155 &  0.155 \\
+\bottomrule
+\end{tabular}

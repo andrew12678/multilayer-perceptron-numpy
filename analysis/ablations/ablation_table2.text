@@ -1,0 +1,10 @@
+\begin{tabular}{lrrrrrr}
+\toprule
+{} & \multicolumn{2}{l}{num\_hidden} & \multicolumn{2}{l}{dropout\_rate} & \multicolumn{2}{l}{batch\_norm} \\
+{} &          N &      Y &            N &      Y &          N &      Y \\
+\midrule
+Train &      0.152 &  0.154 &        0.154 &  0.152 &      0.153 &  0.154 \\
+Val   &      0.180 &  0.162 &        0.160 &  0.168 &      0.163 &  0.160 \\
+Test  &      0.153 &  0.155 &        0.156 &  0.154 &      0.155 &  0.156 \\
+\bottomrule
+\end{tabular}
