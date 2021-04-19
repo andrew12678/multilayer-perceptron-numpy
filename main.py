@@ -23,9 +23,6 @@ def run(args, hyperparams, X_train, y_train, X_test, y_test):
     # Since we only support training on a single set of hyperparams in this function, extract the
     # hyperparam dictionary
     p = hyperparams[0]
-    # Load hyperparameters from file
-    # with open(args.config, "r") as f:
-    #     p = yaml.safe_load(f)[args.hyperparams]
 
     # Create a list of tuples indicating the size of each network layer
     layer_sizes = create_layer_sizes(
@@ -63,12 +60,12 @@ def run(args, hyperparams, X_train, y_train, X_test, y_test):
 
     # Train model
     _ = trainer.train()
-    train_loss = trainer.validation(X=X_train, y=y_train)["loss"]
+    train_metrics = trainer.validation(X=X_train, y=y_train)
 
     # Test model
     test_metrics = trainer.validation(X=X_test, y=y_test)
     print(f"Trained on params: {p}")
-    print(f"Overall training loss: {train_loss}")
+    print(f"Overall training set results: {train_metrics}")
     print(f"Overall test set results: {test_metrics}")
 
 
@@ -116,8 +113,13 @@ def run_experiment(args):
 
         # Kill search if training loss is nan
         if np.isnan(regularized_train_loss):
-            return {**params, "train_loss": np.nan, "cv_loss": np.nan, "accuracy": np.nan,
-                    "f1_macro": np.nan}
+            return {
+                **params,
+                "train_loss": np.nan,
+                "cv_loss": np.nan,
+                "accuracy": np.nan,
+                "f1_macro": np.nan,
+            }
 
         # Get training loss when the model is in "test" model (e.g. no dropout)
         metrics["train_loss"] += trainer.validation(X=X_train_k, y=y_train_k)["loss"]
@@ -186,6 +188,7 @@ def run_kfolds(args, hyperparams, X_train, y_train, write=True):
 
     return summary
 
+
 def plot_learning_curves(args, hyperparams, X_train, y_train):
     plot_dir = "analysis/plots"
     # Make the plot dir if it doesn't exist
@@ -204,20 +207,43 @@ def plot_learning_curves(args, hyperparams, X_train, y_train):
 
     # Number of examples to increase for each datapoint (e.g. 5000 -> 5000, 10000, ..., 50000)
     # increment = 10000
-    for i in num_examples:
-        X = X_train_shuffled[:i]
-        y = y_train_shuffled[:i]
-        # Get kfolds scores for this set of examples
-        summary = run_kfolds(args, hyperparams, X, y, write=False)
-        train_losses.append(summary[0]["train_loss"])
-        cv_losses.append(summary[0]["cv_loss"])
-    print(train_losses)
-    print(cv_losses)
+    # for i in num_examples:
+    #     X = X_train_shuffled[:i]
+    #     y = y_train_shuffled[:i]
+    #     # Get kfolds scores for this set of examples
+    #     summary = run_kfolds(args, hyperparams, X, y, write=False)
+    #     train_losses.append(summary[0]["train_loss"])
+    #     cv_losses.append(summary[0]["cv_loss"])
+    # print(train_losses)
+    # print(cv_losses)
 
     # Example losses
-    # train_losses = [0.15476380272853724, 0.14724771435319572, 0.14368380648098447, 0.14226972405205962, 0.1410810492802653, 0.1396173106561778, 0.13858820971661207, 0.1376052818842732, 0.13726238212764735, 0.13726352644214462]
-    # cv_losses = [0.17368803855208034, 0.16148927089504553, 0.15650455458394166, 0.15298698865546764, 0.1503882746192336, 0.14806578619777597, 0.14688472539691927, 0.14503313948724825, 0.1441868445946898, 0.1441555267272751]
+    train_losses = [
+        0.15476380272853724,
+        0.14724771435319572,
+        0.14368380648098447,
+        0.14226972405205962,
+        0.1410810492802653,
+        0.1396173106561778,
+        0.13858820971661207,
+        0.1376052818842732,
+        0.13726238212764735,
+        0.13726352644214462,
+    ]
+    cv_losses = [
+        0.17368803855208034,
+        0.16148927089504553,
+        0.15650455458394166,
+        0.15298698865546764,
+        0.1503882746192336,
+        0.14806578619777597,
+        0.14688472539691927,
+        0.14503313948724825,
+        0.1441868445946898,
+        0.1441555267272751,
+    ]
 
+    plt.style.use("ggplot")
     plt.plot(num_examples, train_losses, "-o", label="Training Loss")
     plt.plot(num_examples, cv_losses, "-o", label="Validation Loss")
     plt.legend(loc="upper center", bbox_to_anchor=(0.5, 1.05))
@@ -225,22 +251,19 @@ def plot_learning_curves(args, hyperparams, X_train, y_train):
     plt.ylabel("Cross Entropy loss")
     # The title will be better in latex
     # plt.title("Learning curves for best model")
-    plt.savefig(f"{plot_dir}/lc_{args.hyperparams}_{datetime.now().strftime('%Y%m%d%H%M%S')}.png")
+    plt.savefig(
+        f"{plot_dir}/lc_{args.hyperparams}_{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
+    )
     plt.show()
 
-def plot_ablation(args, hyperparams, X_train, y_train):
+
+def get_ablation_data(args, hyperparams, X_train, y_train):
     """
     In this ablation analysis, we run the following for each hyperparameter:
     1. Select a hyperparameter to vary and plot
     2. Fix all other hyperparameters using those from the best model
     3. Make a plot showing how the errors change overtime w.r.t the selected hyperparameter
     """
-
-    plot_dir = "analysis/plots"
-    # Make the plot dir if it doesn't exist
-    if not os.path.exists(plot_dir):
-        os.makedirs(plot_dir)
-
     # We assume that hyperparams is a list of length 1 to run this function
     hyperparams = hyperparams[0]
 
@@ -248,40 +271,38 @@ def plot_ablation(args, hyperparams, X_train, y_train):
     with open(args.config, "r") as f:
         abl_hyperparams = yaml.safe_load(f)[args.ablation_hyperparams]
 
-    for param, values in abl_hyperparams.items():
-        # if param not in ["dropout_rate", "batch_normalisation"]:
-        if param not in ["batch_normalisation", "dropout_rate", "momentum"]:
-            continue
-        # Ignore hyperparameters that we don't vary
-        if param not in ["loss", "optimiser", "activation"]:
-            # Iterate through all possible options for the hyperparameter
-            train_losses = []
-            cv_losses = []
-            for val in values:
-                # Create new dictionary of hyperparams with all values from hyperparams except for val
-                new_hyperparams = [{**hyperparams, param: val}]
-                summary = run_kfolds(args, new_hyperparams, X_train, y_train, write=False)
-                train_losses.append(summary[0]["train_loss"])
-                cv_losses.append(summary[0]["cv_loss"])
+    ablation_params = [
+        "batch_size",
+        "weight_decay",
+        "momentum",
+        "num_hidden",
+        "dropout_rate",
+        "batch_normalisation",
+    ]
+    # Create nested dict to keep track of ablation losses
+    losses = {k: {"Without Module": {}, "With Module": {}} for k in ablation_params}
+    # Iterate through all possible options for the hyperparameter
+    for param in ablation_params:
+        for module_status, val in zip(
+            ["Without Module", "With Module"], abl_hyperparams[param]
+        ):
+            # Create new dictionary of hyperparams with all values from hyperparams except for val
+            new_hyperparams = [{**hyperparams, param: val}]
+            summary = run_kfolds(args, new_hyperparams, X_train, y_train, write=False)
+            losses[param][module_status]["Train"] = summary[0]["train_loss"]
+            losses[param][module_status]["Val"] = summary[0]["cv_loss"]
 
-            plt.figure()
-            plt.style.use('ggplot')
-            if param == "batch_normalisation":
-                # Position of bars on x-axis
-                ind = np.arange(len(values))
-                # Width of a bar
-                width = 0.3
-                plt.bar(ind, train_losses , width, label="Training Loss")
-                plt.bar(ind + width, cv_losses, width, label="Validation Loss")
-                plt.xticks(ind + width / 2, values)
-            else:
-                plt.plot(values, train_losses, "-o", label="Training Loss")
-                plt.plot(values, cv_losses, "-o", label="Validation Loss")
+    ablation_dir = "analysis/ablations"
+    # Make the plot dir if it doesn't exist
+    if not os.path.exists(ablation_dir):
+        os.makedirs(ablation_dir)
 
-            plt.legend(loc="upper center", bbox_to_anchor=(0.5, 1.05))
-            plt.xlabel(param)
-            plt.ylabel("Cross Entropy loss")
-            plt.savefig(f"{plot_dir}/{param}_{args.hyperparams}_{datetime.now().strftime('%Y%m%d%H%M%S')}.png")
+    with open(
+        f"{ablation_dir}/{args.hyperparams}_{datetime.now().strftime('%Y%m%d%H%M%S')}.json",
+        "w",
+    ) as f:
+        json.dump(losses, f)
+
 
 def arg_parser():
     parser = argparse.ArgumentParser()
@@ -303,16 +324,24 @@ def arg_parser():
         "-p", "--processes", default=1, type=int, help="If > 1 then use multiprocessing"
     )
     parser.add_argument(
-        "-kf", "--kfolds", default=0, type=int, help="If 1 then run kfolds validation"
+        "-kf", "--kfolds", default=0, type=int, help="Whether to run kfolds validation"
     )
     parser.add_argument(
         "-s", "--seed", default=42, type=int, help="Random seed used for experiment"
     )
     parser.add_argument(
-        "-lc", "--learning_curves", default=0, type=int, help="Whether to plot learning curves"
+        "-lc",
+        "--learning_curves",
+        default=0,
+        type=int,
+        help="Whether to plot learning curves",
     )
     parser.add_argument(
-        "-a", "--ablation", default=0, type=int, help="Whether to plot ablation analysis"
+        "-a",
+        "--ablation",
+        default=0,
+        type=int,
+        help="Whether to plot ablation analysis",
     )
     parser.add_argument(
         "-ahy",
@@ -355,7 +384,7 @@ if __name__ == "__main__":
     elif args.learning_curves:
         plot_learning_curves(args, hyperparams, X_train, y_train)
     elif args.ablation:
-        plot_ablation(args, hyperparams, X_train, y_train)
+        get_ablation_data(args, hyperparams, X_train, y_train)
     else:
         run(args, hyperparams, X_train, y_train, X_test, y_test)
 

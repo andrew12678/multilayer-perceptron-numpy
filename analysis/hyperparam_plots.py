@@ -15,23 +15,45 @@ def write_hyperparams_table(data):
 
     # df = df.sort_values("validation_score", ascending=False, ignore_index=True)
     df = df.sort_values("loss", ascending=True, ignore_index=True)
-    df = df[[
-        'batch_size', 'num_epochs', 'learning_rate', 'weight_decay', 'momentum', 'num_hidden',
-        'hidden_size', 'dropout_rate', 'batch_normalisation', 'loss', 'accuracy',
-        'f1_macro',
-        # 'validation_score'
-    ]]
-    df = df.rename(columns={
-        'batch_size': 'b_size', 'num_epochs': 'epochs', 'learning_rate': 'lr', 'weight_decay': 'wd',
-        'momentum': 'mom', 'num_hidden': 'n_h', 'hidden_size': 'h_size', 'dropout_rate': 'drp',
-        'batch_normalisation': 'bn', 'loss': 'loss', 'accuracy': 'acc', 'f1_macro': 'f1',
-        # 'validation_score': 'score'
-    })
+    df = df[
+        [
+            "batch_size",
+            "num_epochs",
+            "learning_rate",
+            "weight_decay",
+            "momentum",
+            "num_hidden",
+            "hidden_size",
+            "dropout_rate",
+            "batch_normalisation",
+            "loss",
+            "accuracy",
+            "f1_macro",
+            # 'validation_score'
+        ]
+    ]
+    df = df.rename(
+        columns={
+            "batch_size": "b_size",
+            "num_epochs": "epochs",
+            "learning_rate": "lr",
+            "weight_decay": "wd",
+            "momentum": "mom",
+            "num_hidden": "n_h",
+            "hidden_size": "h_size",
+            "dropout_rate": "drp",
+            "batch_normalisation": "bn",
+            "loss": "loss",
+            "accuracy": "acc",
+            "f1_macro": "f1",
+            # 'validation_score': 'score'
+        }
+    )
     df.index += 1
-    df['loss'] = df['loss'].round(4)
+    df["loss"] = df["loss"].round(4)
     # df[['acc', 'f1', 'score']] = df[['acc', 'f1', 'score']].round(3)
-    df[['acc', 'f1']] = df[['acc', 'f1']].round(3)
-    df['bn'] = df['bn'].map({False: 'N', True: 'Y'})
+    df[["acc", "f1"]] = df[["acc", "f1"]].round(3)
+    df["bn"] = df["bn"].map({False: "N", True: "Y"})
 
     # Running manually without multiprocessing we get different results. Use these results to
     # replace the top 3 in the grid search for replicability
@@ -47,11 +69,10 @@ def write_hyperparams_table(data):
     #     'hidden_size': 128, 'activation': 'relu', 'dropout_rate': 0, 'batch_normalisation': False},
     # ]
 
-
     print(df.head(30))
     # Save the top 15 values to a latex table
     # Note that we overwrite the top 3 values with values obtained without multiprocessing.
-    with open("analysis/hyperparam_table.text", "w") as f:
+    with open("analysis/hyperparam_table1.text", "w") as f:
         f.write(df[:15].to_latex(index=True))
 
 
