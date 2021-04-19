@@ -56,7 +56,7 @@ class MLP:
             )
 
             # Check if batch normalisation is to be used and if before final layer
-            if batch_normalisation and idx < len(layer_sizes) - 1:
+            if batch_normalisation:
 
                 # Append batch normalisation layer to layers list
                 self.layers.append(BatchNorm(n_in=output_size))

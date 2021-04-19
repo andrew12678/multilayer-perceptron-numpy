@@ -3,7 +3,7 @@ import numpy as np
 
 
 class BatchNorm(Layer):
-    def __init__(self, n_in: int, momentum_ma: float = 0.1):
+    def __init__(self, n_in: int, momentum_ma: float = 0.9):
 
         """
         Sets up a batch normalisation layer taking in n_in inputs and producing the same no. of outputs
