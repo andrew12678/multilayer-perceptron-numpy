@@ -179,6 +179,7 @@ def run_kfolds(args, hyperparams, X_train, y_train, write=True):
 
     return summary
 
+
 def get_learning_curve_data(args, hyperparams, X_train, y_train):
     # Randomly shuffle all data
     idxs = list(range(len(X_train)))
@@ -201,7 +202,11 @@ def get_learning_curve_data(args, hyperparams, X_train, y_train):
         cv_losses.append(summary[0]["cv_loss"])
     # print(train_losses)
     # print(cv_losses)
-    data = {"num_examples": num_examples, "train_losses": train_losses, "cv_losses": cv_losses}
+    data = {
+        "num_examples": num_examples,
+        "train_losses": train_losses,
+        "cv_losses": cv_losses,
+    }
 
     lc_dir = "analysis/learning_curves"
     # Make the plot dir if it doesn't exist
@@ -214,6 +219,7 @@ def get_learning_curve_data(args, hyperparams, X_train, y_train):
     ) as f:
         json.dump(data, f)
     return data
+
 
 def plot_learning_curves(data):
     lc_dir = "analysis/learning_curves"
@@ -233,6 +239,7 @@ def plot_learning_curves(data):
     )
     plt.show()
 
+
 def get_ablation_data(args, hyperparams, X_train, y_train, X_test, y_test):
     """
     In this ablation analysis, we run the following for each hyperparameter:
@@ -248,7 +255,7 @@ def get_ablation_data(args, hyperparams, X_train, y_train, X_test, y_test):
         abl_hyperparams = yaml.safe_load(f)[args.ablation_hyperparams]
 
     ablation_params = [
-        "batch_size",
+        # "batch_size",
         "weight_decay",
         "momentum",
         "num_hidden",
@@ -259,13 +266,15 @@ def get_ablation_data(args, hyperparams, X_train, y_train, X_test, y_test):
     losses = {k: {"N": {}, "Y": {}} for k in ablation_params}
     # Iterate through all possible options for the hyperparameter
     for param in ablation_params:
-        for module_status, val in zip(
-            ["N", "Y"], abl_hyperparams[param]
-        ):
+        for module_status, val in zip(["N", "Y"], abl_hyperparams[param]):
             # Create new dictionary of hyperparams with all values from hyperparams except for val
             new_hyperparams = [{**hyperparams, param: val}]
-            cv_summary = run_kfolds(args, new_hyperparams, X_train, y_train, write=False)
-            train_summary, test_summary = run(args, [hyperparams], X_train, y_train, X_test, y_test)
+            cv_summary = run_kfolds(
+                args, new_hyperparams, X_train, y_train, write=False
+            )
+            train_summary, test_summary = run(
+                args, [hyperparams], X_train, y_train, X_test, y_test
+            )
 
             losses[param][module_status]["Train"] = train_summary["loss"]
             losses[param][module_status]["Val"] = cv_summary[0]["cv_loss"]
@@ -283,11 +292,13 @@ def get_ablation_data(args, hyperparams, X_train, y_train, X_test, y_test):
         json.dump(losses, f)
     return losses
 
+
 def plot_ablation(data):
     # Convert nested dictionary to multi index dataframe.
     # Credit to BrenBarn https://stackoverflow.com/questions/24988131/nested-dictionary-to-multiindex-dataframe-where-dictionary-keys-are-column-label
     reform = {
-        (outerKey, innerKey): values for outerKey, innerDict in data.items()
+        (outerKey, innerKey): values
+        for outerKey, innerDict in data.items()
         for innerKey, values in innerDict.items()
     }
     df = pd.DataFrame(reform)
@@ -295,29 +306,28 @@ def plot_ablation(data):
     df = df.round(3)
     df = df.rename(
         columns={
-            # "batch_size": "b_size",
+            # "batch_size": "batched",
             # "weight_decay": "wd",
             # "momentum": "mom",
-            # "num_hidden": "n_h",
-            # "dropout_rate": "drp",
+            "num_hidden": "hidden_layers",
+            "dropout_rate": "dropout",
             "batch_normalisation": "batch_norm",
         }
     )
-    df1 = df[["batch_size", "weight_decay", "momentum"]]
-    df2 = df[["num_hidden", "dropout_rate", "batch_norm"]]
+    # Transpose to make multi row instead of multi column
+    df = df.T
 
     ablation_dir = "analysis/ablations"
     # Make the plot dir if it doesn't exist
     if not os.path.exists(ablation_dir):
         os.makedirs(ablation_dir)
 
-    with open(f"{ablation_dir}/ablation_table1.text", "w") as f:
-        f.write(df1.to_latex(index=True))
-    with open(f"{ablation_dir}/ablation_table2.text", "w") as f:
-        f.write(df2.to_latex(index=True))
+    with open(f"{ablation_dir}/ablation_table.text", "w") as f:
+        f.write(df.to_latex(index=True))
 
     print(data)
     print(df)
+
 
 def arg_parser():
     parser = argparse.ArgumentParser()
@@ -411,7 +421,7 @@ if __name__ == "__main__":
     elif args.learning_curves:
         if args.learning_curves_file:
             # If we have a saved learning_curves file, don't generate a new one
-            with open(args.learning_curves_file, 'r') as f:
+            with open(args.learning_curves_file, "r") as f:
                 data = json.load(f)
         else:
             data = get_learning_curve_data(args, hyperparams, X_train, y_train)
@@ -419,11 +429,13 @@ if __name__ == "__main__":
     elif args.ablation:
         if args.ablation_file:
             # If we have a saved ablation file, don't generate a new one
-            with open(args.ablation_file, 'r') as f:
+            with open(args.ablation_file, "r") as f:
                 losses = json.load(f)
         else:
             # Create ablation data
-            losses = get_ablation_data(args, hyperparams, X_train, y_train, X_test, y_test)
+            losses = get_ablation_data(
+                args, hyperparams, X_train, y_train, X_test, y_test
+            )
         plot_ablation(losses)
     else:
         run(args, hyperparams, X_train, y_train, X_test, y_test)
