@@ -254,8 +254,10 @@ def get_ablation_data(args, hyperparams, X_train, y_train, X_test, y_test):
     with open(args.config, "r") as f:
         abl_hyperparams = yaml.safe_load(f)[args.ablation_hyperparams]
 
+    # Note that including batch_size will add ~1 day to the training time,
+    # since learning with batch_size 1 is very slow.
     ablation_params = [
-        # "batch_size",
+        "batch_size",
         "weight_decay",
         "momentum",
         "num_hidden",
@@ -306,7 +308,7 @@ def plot_ablation(data):
     df = df.round(3)
     df = df.rename(
         columns={
-            # "batch_size": "batched",
+            "batch_size": "batched",
             # "weight_decay": "wd",
             # "momentum": "mom",
             "num_hidden": "hidden_layers",
