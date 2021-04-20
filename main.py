@@ -269,8 +269,21 @@ def get_ablation_data(args, hyperparams, X_train, y_train, X_test, y_test):
     # Iterate through all possible options for the hyperparameter
     for param in ablation_params:
         for module_status, val in zip(["N", "Y"], abl_hyperparams[param]):
-            # Create new dictionary of hyperparams with all values from hyperparams except for val
-            new_hyperparams = [{**hyperparams, param: val}]
+            if param != "batch_size":
+                # Create new dictionary of hyperparams with all values from hyperparams except for val
+                new_hyperparams = [{**hyperparams, param: val}]
+            else:
+                # Training many epochs with batch size of 1 is unfeasible, we reduce to 10, as well
+                # as reducing the size of the model
+                new_hyperparams = [
+                    {
+                        **hyperparams,
+                        param: val,
+                        "num_epochs": 10,
+                        "num_hidden": 2,
+                        "hidden_size": 128,
+                    }
+                ]
             cv_summary = run_kfolds(
                 args, new_hyperparams, X_train, y_train, write=False
             )
