@@ -17,6 +17,38 @@ Code is auto-formatted using `black`: installation instructions for IDEs: https:
 
 Docstrings are Google style  
 
+## Running the code
+Note that the below commands will run the best model, which corresponds to _params-best_ in _hyperparams/config.yml_. To run another model, replace _params-best_ with another model name in _hyperparams/config.yml_.
+
+To run the best model on the entire training set and test on the test set, run:
+```
+python main.py -hy params-best
+```
+The above command takes ~22 minutes on a machine with 12 cores.
+
+To create learning curves for the best model, run:
+```
+python3 main.py -lc 1 -hy params-best
+```
+To run the complete ablation studies for the best model, run:
+```
+python3 main.py -a 1 -ahy grid-ablation -hy params-best
+```
+For 5-folds stratified cross validation with the best model, run:
+```
+python main.py -hy params-best -kf 1 -p [number of processors to use]
+```
+To find the best model using a grid-search with 5-folds cross validation, run:
+```
+python main.py -hy grid-search1 -kf 1 -p [number of processors to use]
+```
+where _grid-search1_ represents the hyperparameter values to search over, defined in _hyperparams/config.yml_.
+
+To generate a model performance table after a (set of) grid search, run:
+```
+python analysis/hyperparam_plots.py -rf [set of results files]
+```
+where [set of results files] can be one or more grid search result json files from _results/_.
 ## Folder Structure
 
 ```

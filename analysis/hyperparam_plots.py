@@ -10,10 +10,7 @@ def write_hyperparams_table(data):
     loss_norm = (df["loss"] - df["loss"].mean()) / df["loss"].std()
     acc_norm = (df["accuracy"] - df["accuracy"].mean()) / df["accuracy"].std()
     f1_macro_norm = (df["f1_macro"] - df["f1_macro"].mean()) / df["f1_macro"].std()
-    # Combine metrics by taking their sum (we use a negative for loss since we aim to minimise it)
-    # df["validation_score"] = acc_norm - loss_norm + f1_macro_norm
 
-    # df = df.sort_values("validation_score", ascending=False, ignore_index=True)
     df = df.sort_values("loss", ascending=True, ignore_index=True)
     df = df[
         [
@@ -29,7 +26,6 @@ def write_hyperparams_table(data):
             "loss",
             "accuracy",
             "f1_macro",
-            # 'validation_score'
         ]
     ]
     df = df.rename(
@@ -46,28 +42,12 @@ def write_hyperparams_table(data):
             "loss": "loss",
             "accuracy": "acc",
             "f1_macro": "f1",
-            # 'validation_score': 'score'
         }
     )
     df.index += 1
     df["loss"] = df["loss"].round(4)
-    # df[['acc', 'f1', 'score']] = df[['acc', 'f1', 'score']].round(3)
     df[["acc", "f1"]] = df[["acc", "f1"]].round(3)
     df["bn"] = df["bn"].map({False: "N", True: "Y"})
-
-    # Running manually without multiprocessing we get different results. Use these results to
-    # replace the top 3 in the grid search for replicability
-    # manual_runs = [
-    #     {'loss': 'cross_entropy', 'optimiser': 'sgd', 'batch_size': 64, 'num_epochs': 100,
-    #     'learning_rate': 0.01, 'weight_decay': 0.0001, 'momentum': 0.5, 'num_hidden': 4,
-    #     'hidden_size': 128, 'activation': 'relu', 'dropout_rate': 0, 'batch_normalisation': False},
-    #     {'loss': 'cross_entropy', 'optimiser': 'sgd', 'batch_size': 64, 'num_epochs': 100,
-    #     'learning_rate': 0.01, 'weight_decay': 0.0001, 'momentum': 0.5, 'num_hidden': 3,
-    #     'hidden_size': 128, 'activation': 'relu', 'dropout_rate': 0, 'batch_normalisation': False},
-    #     {'loss': 'cross_entropy', 'optimiser': 'sgd', 'batch_size': 64, 'num_epochs': 100,
-    #     'learning_rate': 0.01, 'weight_decay': 0.0001, 'momentum': 0.5, 'num_hidden': 2,
-    #     'hidden_size': 128, 'activation': 'relu', 'dropout_rate': 0, 'batch_normalisation': False},
-    # ]
 
     print(df.head(30))
     # Save the top 15 values to a latex table
