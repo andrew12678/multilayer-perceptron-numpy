@@ -28,11 +28,11 @@ The above command takes ~22 minutes on a machine with 12 cores.
 
 To create learning curves for the best model, run:
 ```
-python3 main.py -lc 1 -hy params-best
+python main.py -lc 1 -hy params-best
 ```
 To run the complete ablation studies for the best model, run:
 ```
-python3 main.py -a 1 -ahy grid-ablation -hy params-best
+python main.py -a 1 -ahy grid-ablation -hy params-best
 ```
 For 5-folds stratified cross validation with the best model, run:
 ```
