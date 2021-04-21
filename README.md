@@ -60,7 +60,6 @@ ROOT/
 └── src/ - source code for our MLP implementation
     ├── activation/ - directory for our activations
     │ ├── activation.py - base case for activation
-    │ ├── identity.py - identity activation function
     │ ├── leaky_relu.py - leaky ReLU activation function
     │ ├── logistic.py - logistic activation function
     │ ├── relu.py - ReLU activation function
