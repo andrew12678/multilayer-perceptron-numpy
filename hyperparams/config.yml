@@ -4,12 +4,12 @@ params1:
     batch_size: 256
     num_epochs: 1
     learning_rate: 0.1
-    weight_decay: 0
+    weight_decay: 0.0
     momentum: 0.9
-    num_hidden: 2
-    hidden_size: 64
+    num_hidden: 1
+    hidden_size: 4
     activation: "relu"
-    dropout_rate: 0
+    dropout_rate: 0.3
     batch_normalisation: True
 
 params-best:
@@ -53,17 +53,3 @@ grid-search2:
     activation: ["relu"]
     dropout_rate: [0.3, 0.5]
     batch_normalisation: [True]
-
-grid-ablation:
-    loss: ["cross_entropy"]
-    optimiser: ["sgd"]
-    batch_size: [1, 64]
-    num_epochs: [100]
-    learning_rate: [0.1]
-    weight_decay: [0, 0.001]
-    momentum: [0, 0.9]
-    num_hidden: [0, 4]
-    hidden_size: [128]
-    activation: ["relu"]
-    dropout_rate: [0, 0.3]
-    batch_normalisation: [False, True]

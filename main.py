@@ -242,53 +242,47 @@ def plot_learning_curves(data):
 
 def get_ablation_data(args, hyperparams, X_train, y_train, X_test, y_test):
     """
-    In this ablation analysis, we run the following for each hyperparameter:
-    1. Select a hyperparameter to vary and plot
-    2. Fix all other hyperparameters using those from the best model
-    3. Make a plot showing how the errors change overtime w.r.t the selected hyperparameter
+    In this ablation analysis, we test the model specified in hyperparams with and without each
+    module.
     """
     # We assume that hyperparams is a list of length 1 to run this function
     hyperparams = hyperparams[0]
 
-    # Load ablation hyperparameters to search over
-    with open(args.config, "r") as f:
-        abl_hyperparams = yaml.safe_load(f)[args.ablation_hyperparams]
+    # Create dict to keep track of ablation losses and execution time
+    cols = ["Best model", "With weight_decay=0.001", "Without momentum", "Without hidden layers",
+            "Without dropout", "Without batchnorm", "Batched 10 epochs", "SGD 10 epochs"]
+    losses = {k: {} for k in cols}
+    for col in cols:
+        new_hyperparams = hyperparams.copy()
+        if col == "With weight_decay=0.001":
+            new_hyperparams["weight_decay"] = 0.001
+        elif col == "Without momentum":
+            new_hyperparams["momentum"] = 0
+        elif col == "Without hidden layers":
+            new_hyperparams["num_hidden"] = 0
+        elif col == "Without dropout":
+            new_hyperparams["dropout_rate"] = 0
+        elif col == "Without batchnorm":
+            new_hyperparams["batch_normalisation"] = False
+        elif col == "Batched 10 epochs":
+            new_hyperparams["num_epochs"] = 10
+        elif col == "SGD 10 epochs":
+            new_hyperparams["num_epochs"] = 10
+            new_hyperparams["batch_size"] = 1
 
-    # Note that including batch_size will add ~1 day to the training time,
-    # since learning with batch_size 1 is very slow.
-    ablation_params = [
-        "batch_size",
-        "weight_decay",
-        "momentum",
-        "num_hidden",
-        "dropout_rate",
-        "batch_normalisation",
-    ]
-    # Create nested dict to keep track of ablation losses
-    losses = {k: {"N": {}, "Y": {}} for k in ablation_params}
-    # Iterate through all possible options for the hyperparameter
-    for param in ablation_params:
-        for module_status, val in zip(["N", "Y"], abl_hyperparams[param]):
-            # Create new dictionary of hyperparams with all values from hyperparams except for val
-            new_hyperparams = [{**hyperparams, param: val}]
-
-            if param == "batch_size":
-                # Training many epochs with batch size of 1 is unfeasible, we reduce to 10, as well
-                # as reducing the size of the model
-                new_hyperparams[0].update(
-                    {"num_epochs": 10, "num_hidden": 2, "hidden_size": 128}
-                )
-
-            cv_summary = run_kfolds(
-                args, new_hyperparams, X_train, y_train, write=False
-            )
-            train_summary, test_summary = run(
-                args, [hyperparams], X_train, y_train, X_test, y_test
-            )
-
-            losses[param][module_status]["Train"] = train_summary["loss"]
-            losses[param][module_status]["Val"] = cv_summary[0]["cv_loss"]
-            losses[param][module_status]["Test"] = test_summary["loss"]
+        # Run kfolds and train/test
+        cv_summary = run_kfolds(
+            args, [new_hyperparams], X_train, y_train, write=False
+        )
+        # Start the timer to measure the training time
+        start_time = time.time()
+        train_summary, test_summary = run(
+            args, [new_hyperparams], X_train, y_train, X_test, y_test
+        )
+        losses[col]["Time"] = time.time() - start_time
+        losses[col]["Train"] = train_summary["loss"]
+        losses[col]["Val"] = cv_summary[0]["cv_loss"]
+        losses[col]["Test"] = test_summary["loss"]
 
     ablation_dir = "analysis/ablations"
     # Make the plot dir if it doesn't exist
@@ -304,26 +298,10 @@ def get_ablation_data(args, hyperparams, X_train, y_train, X_test, y_test):
 
 
 def plot_ablation(data):
-    # Convert nested dictionary to multi index dataframe.
-    # Credit to BrenBarn https://stackoverflow.com/questions/24988131/nested-dictionary-to-multiindex-dataframe-where-dictionary-keys-are-column-label
-    reform = {
-        (outerKey, innerKey): values
-        for outerKey, innerDict in data.items()
-        for innerKey, values in innerDict.items()
-    }
-    df = pd.DataFrame(reform)
+    """Plot ablation tables"""
+    df = pd.DataFrame(data)
 
     df = df.round(3)
-    df = df.rename(
-        columns={
-            "batch_size": "batched",
-            # "weight_decay": "wd",
-            # "momentum": "mom",
-            "num_hidden": "hidden_layers",
-            "dropout_rate": "dropout",
-            "batch_normalisation": "batch_norm",
-        }
-    )
     # Transpose to make multi row instead of multi column
     df = df.T
 
@@ -332,12 +310,17 @@ def plot_ablation(data):
     if not os.path.exists(ablation_dir):
         os.makedirs(ablation_dir)
 
-    with open(f"{ablation_dir}/ablation_table.text", "w") as f:
-        f.write(df.to_latex(index=True))
+    # We plot a separate table for the SGD vs batched experiment run with 10 epochs
+    df1 = df.loc[:"Without batchnorm"]
+    df2 = df.loc["Batched 10 epochs":]
 
-    print(data)
-    print(df)
+    with open(f"{ablation_dir}/ablation_table1.text", "w") as f:
+        f.write(df1.to_latex(index=True))
+    with open(f"{ablation_dir}/ablation_table2.text", "w") as f:
+        f.write(df2.to_latex(index=True))
 
+    print(df1)
+    print(df2)
 
 def arg_parser():
     parser = argparse.ArgumentParser()
@@ -383,13 +366,6 @@ def arg_parser():
         default=0,
         type=int,
         help="Whether to plot ablation analysis",
-    )
-    parser.add_argument(
-        "-ahy",
-        "--ablation_hyperparams",
-        default="grid-ablation",
-        type=str,
-        help="Name of grid for ablation analysis",
     )
     parser.add_argument(
         "-af",
