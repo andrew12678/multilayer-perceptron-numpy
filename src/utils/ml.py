@@ -115,6 +115,14 @@ def initialise_weights(n_in: int, n_out: int, activation_fn: str):
             low=-np.sqrt(6.0 / n_in), high=np.sqrt(6.0 / n_in), size=(n_in, n_out)
         )
 
+    # Check if He initialisation (ReLU & LReLU)
+    elif activation_fn == "identity":
+
+        # Initialise weights using Kaiming uniform distribution
+        weights = np.random.uniform(
+            low=-np.sqrt(6.0 / n_in), high=np.sqrt(6.0 / n_in), size=(n_in, n_out)
+        )
+
     # Check if activation is not defined (REVIEW THIS)
     elif activation_fn == None:
 
