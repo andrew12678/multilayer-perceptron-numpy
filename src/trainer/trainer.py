@@ -1,4 +1,5 @@
 import numpy as np
+import copy
 from ..network.mlp import MLP
 from ..layers.layer import Layer
 from ..utils.ml import Batcher, one_hot
@@ -56,19 +57,21 @@ class Trainer:
         )
 
     # Primary method that trains the network
-    def train(self):
-
+    def train(self, X_test: np.ndarray=None, y_test: np.ndarray=None):
+        """
+        X_test and y_test are used when the user wishes to return the test error during training
+        """
         # Ensure model is in training mode
         self.model.train()
+
+        # Instatiate dictionary to return
+        losses = {"train": {}, "test": {}}
 
         # Instantiate accumulated loss variable for training
         acc_loss = 0
 
         # Loop through designated number of epochs
         for epoch in range(1, self.n_epochs + 1):
-
-            # Display epoch numbers
-            # print(f"Starting epoch: {epoch}")
 
             # Zeroing the gradients
             self.model.zero_grad()
@@ -100,16 +103,34 @@ class Trainer:
                 # Add batch loss to accumulated loss
                 acc_loss += loss
 
+            current_loss = acc_loss / (epoch * len(batches))
             # Check if epoch is multiple of 5
             if epoch % 5 == 0:
                 # Display average loss
-                print(f"Epoch: {epoch}, loss: {acc_loss / (epoch * len(batches))}")
+                print(f"Epoch: {epoch}, loss: {current_loss}")
+
+                # Get preds for current batch
+                y_hat = np.argmax(output, axis=1)
+                # Convert one_hot to index for batch labels
+                y_batch_true = np.argmax(y_batch, axis=1)
+
+                # Calculate metrics for training set
+                train_metrics = calculate_metrics(y=y_batch_true, y_hat=y_hat)
+                train_metrics["loss"] = current_loss
+                losses["train"][epoch] = train_metrics
+
+                # Get test loss if the user passed in an array
+                if X_test is not None and y_test is not None:
+                    test_metrics = self.validation(X_test, y_test)
+                    losses["test"][epoch] = test_metrics
+                    print(f"train acc: {train_metrics['accuracy']}. test acc: {test_metrics['accuracy']}")
+
                 # Kill the training if our acc_loss is a nan
                 if np.isnan(acc_loss):
-                    return np.nan
+                    break
 
-        # Return training loss
-        return acc_loss / (self.n_epochs * len(batches))
+        # Return training loss (and test losses if user provided test data)
+        return losses
 
     # Secondary method that evaluates the network performance on a separate test dataset
     def validation(self, X: np.ndarray, y: np.ndarray):

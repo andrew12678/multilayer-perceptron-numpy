@@ -16,7 +16,7 @@ from src.network.mlp import MLP
 from src.utils.ml import one_hot, create_stratified_kfolds, create_layer_sizes
 
 
-def run(args, hyperparams, X_train, y_train, X_test, y_test):
+def run_model(args, hyperparams, X_train, y_train, X_test, y_test, plot=False):
 
     # Define the number of classes
     n_classes = len(np.unique(y_train))
@@ -59,15 +59,20 @@ def run(args, hyperparams, X_train, y_train, X_test, y_test):
         momentum=p["momentum"],
     )
 
-    # Train model
-    _ = trainer.train()
+    # Train model whilst saving test metrics
+    losses = trainer.train(X_test=X_test, y_test=y_test)
+
+    # Get most recent test results, noting that we save all metrics every 5 epochs
+    test_metrics = losses["test"][max(losses["test"])]
+
+    # Get training error metrics with model in test mode (this turns off dropout among others)
     train_metrics = trainer.validation(X=X_train, y=y_train)
 
-    # Test model
-    test_metrics = trainer.validation(X=X_test, y=y_test)
     print(f"Trained on params: {p}")
     print(f"Overall training set results: {train_metrics}")
     print(f"Overall test set results: {test_metrics}")
+    if plot:
+        plot_model_over_time(losses)
     return train_metrics, test_metrics
 
 
@@ -111,17 +116,7 @@ def run_experiment(args):
         )
 
         # Train model on training set
-        regularized_train_loss = trainer.train()
-
-        # Kill search if training loss is nan
-        if np.isnan(regularized_train_loss):
-            return {
-                **params,
-                "train_loss": np.nan,
-                "cv_loss": np.nan,
-                "accuracy": np.nan,
-                "f1_macro": np.nan,
-            }
+        _ = trainer.train()
 
         # Get training loss for fold when the model is in "test" model (e.g. no dropout)
         metrics["train_loss"] += trainer.validation(X=X_train_k, y=y_train_k)["loss"]
@@ -239,6 +234,26 @@ def plot_learning_curves(data):
     )
     plt.show()
 
+def plot_model_over_time(losses):
+    # TODO plot the training and test metrics here. Not sure which metrics to plot
+
+    # lc_dir = "analysis/model_plots"
+    # # Make the plot dir if it doesn't exist
+    # if not os.path.exists(lc_dir):
+    #     os.makedirs(lc_dir)
+    # plt.style.use("ggplot")
+    # plt.plot(data["num_examples"], data["train_losses"], "-o", label="Training Loss")
+    # plt.plot(data["num_examples"], data["cv_losses"], "-o", label="Validation Loss")
+    # plt.legend(loc="upper center", bbox_to_anchor=(0.5, 1.05))
+    # plt.xlabel("Number of examples")
+    # plt.ylabel("Cross Entropy loss")
+    # # The title will be better in latex
+    # # plt.title("Learning curves for best model")
+    # plt.savefig(
+    #     f"{lc_dir}/plot_{args.hyperparams}_{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
+    # )
+    # plt.show()
+    # print(losses)
 
 def get_ablation_data(args, hyperparams, X_train, y_train, X_test, y_test):
     """
@@ -279,7 +294,7 @@ def get_ablation_data(args, hyperparams, X_train, y_train, X_test, y_test):
         )
         # Start the timer to measure the training time
         start_time = time.time()
-        train_summary, test_summary = run(
+        train_summary, test_summary = run_model(
             args, [new_hyperparams], X_train, y_train, X_test, y_test
         )
         losses[col]["Time"] = time.time() - start_time
@@ -349,6 +364,13 @@ def arg_parser():
     )
     parser.add_argument(
         "-s", "--seed", default=42, type=int, help="Random seed used for experiment"
+    )
+    parser.add_argument(
+        "-pe",
+        "--plot_errors",
+        default=0,
+        type=int,
+        help="Whether to plot model errors over time",
     )
     parser.add_argument(
         "-lc",
@@ -427,6 +449,6 @@ if __name__ == "__main__":
             )
         plot_ablation(losses)
     else:
-        run(args, hyperparams, X_train, y_train, X_test, y_test)
+        run_model(args, hyperparams, X_train, y_train, X_test, y_test, plot=args.plot_errors)
 
     print("Run time: ", time.time() - start_time)
