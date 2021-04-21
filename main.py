@@ -341,17 +341,30 @@ def plot_ablation(data):
     df = pd.DataFrame(data)
 
     df = df.round(3)
+    df = df.rename(
+        columns={
+            "Without activations": "No activations",
+            "With weight_decay=0.001": "wd=0.001",
+            "Without momentum": "No momentum",
+            "Without hidden layers": "No hidden layers",
+            "Without dropout": "No dropout",
+            "Without batchnorm": "No batchnorm",
+            "Batched 10 epochs": "Batched",
+            "SGD 10 epochs": "SGD",
+        }
+    )
     # Transpose to make multi row instead of multi column
     df = df.T
 
+    df["Time"] = df["Time"].astype(int)
     ablation_dir = "analysis/ablations"
     # Make the plot dir if it doesn't exist
     if not os.path.exists(ablation_dir):
         os.makedirs(ablation_dir)
 
     # We plot a separate table for the SGD vs batched experiment run with 10 epochs
-    df1 = df.loc[:"Without batchnorm"]
-    df2 = df.loc["Batched 10 epochs":]
+    df1 = df.loc[:"No batchnorm"]
+    df2 = df.loc["Batched":]
 
     with open(f"{ablation_dir}/ablation_table1.text", "w") as f:
         f.write(df1.to_latex(index=True))
