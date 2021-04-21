@@ -16,7 +16,7 @@ from src.network.mlp import MLP
 from src.utils.ml import one_hot, create_stratified_kfolds, create_layer_sizes
 
 
-def run_model(args, hyperparams, X_train, y_train, X_test, y_test, plot=False):
+def run_model(args, hyperparams, X_train, y_train, X_test, y_test, save=False):
 
     # Define the number of classes
     n_classes = len(np.unique(y_train))
@@ -72,20 +72,19 @@ def run_model(args, hyperparams, X_train, y_train, X_test, y_test, plot=False):
     print(f"Overall training set results: {train_metrics}")
     print(f"Overall test set results: {test_metrics}")
 
-    losses_dir = "analysis/losses"
-    # Make the plot dir if it doesn't exist
-    if not os.path.exists(losses_dir):
-        os.makedirs(losses_dir)
+    if save:
+        losses_dir = "analysis/losses"
+        # Make the plot dir if it doesn't exist
+        if not os.path.exists(losses_dir):
+            os.makedirs(losses_dir)
 
-    with open(
-        f"{losses_dir}/{args.hyperparams}_{datetime.now().strftime('%Y%m%d%H%M%S')}.json",
-        "w",
-    ) as f:
-        json.dump(losses, f)
+        with open(
+            f"{losses_dir}/{args.hyperparams}_{datetime.now().strftime('%Y%m%d%H%M%S')}.json",
+            "w",
+        ) as f:
+            json.dump(losses, f)
 
-    if plot:
-        plot_model_over_time(losses)
-    return train_metrics, test_metrics
+    return train_metrics, test_metrics, losses
 
 
 def run_experiment(args):
@@ -315,7 +314,7 @@ def get_ablation_data(args, hyperparams, X_train, y_train, X_test, y_test):
         cv_summary = run_kfolds(args, [new_hyperparams], X_train, y_train, write=False)
         # Start the timer to measure the training time
         start_time = time.time()
-        train_summary, test_summary = run_model(
+        train_summary, test_summary, _ = run_model(
             args, [new_hyperparams], X_train, y_train, X_test, y_test
         )
         losses[col]["Time"] = time.time() - start_time
@@ -408,6 +407,12 @@ def arg_parser():
         help="Whether to plot model errors over time",
     )
     parser.add_argument(
+        "-ef",
+        "--errors_file",
+        type=str,
+        help="Name of file with saved data for plotting errors",
+    )
+    parser.add_argument(
         "-lc",
         "--learning_curves",
         default=0,
@@ -484,8 +489,15 @@ if __name__ == "__main__":
             )
         plot_ablation(losses)
     else:
-        run_model(
-            args, hyperparams, X_train, y_train, X_test, y_test, plot=args.plot_errors
-        )
+        if args.errors_file:
+            # If we have a saved errors file, don't generate a new one
+            with open(args.errors_file, "r") as f:
+                losses = json.load(f)
+        else:
+            # Create errors data
+            _, _, losses = run_model(
+                args, hyperparams, X_train, y_train, X_test, y_test, save=True
+            )
+        plot_model_over_time(losses)
 
     print("Run time: ", time.time() - start_time)
