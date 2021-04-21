@@ -249,13 +249,16 @@ def get_ablation_data(args, hyperparams, X_train, y_train, X_test, y_test):
     hyperparams = hyperparams[0]
 
     # Create dict to keep track of ablation losses and execution time
-    cols = ["Best model", "With weight_decay=0.001", "Without momentum", "Without hidden layers",
-            "Without dropout", "Without batchnorm", "Batched 10 epochs", "SGD 10 epochs"]
+    cols = ["Best model", "Without activations", "With weight_decay=0.001", "Without momentum",
+            "Without hidden layers", "Without dropout", "Without batchnorm", "Batched 10 epochs",
+            "SGD 10 epochs"]
     losses = {k: {} for k in cols}
     for col in cols:
         new_hyperparams = hyperparams.copy()
         if col == "With weight_decay=0.001":
             new_hyperparams["weight_decay"] = 0.001
+        elif col == "Without activations":
+            new_hyperparams["activation"] = None
         elif col == "Without momentum":
             new_hyperparams["momentum"] = 0
         elif col == "Without hidden layers":
