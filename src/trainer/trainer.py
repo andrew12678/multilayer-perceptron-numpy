@@ -121,7 +121,6 @@ class Trainer:
 
                 # Get test loss if the user passed in an array
                 if X_test is not None and y_test is not None:
-                    self.model.test()
                     test_metrics = self.validation(X_test, y_test)
                     losses["test"][epoch] = test_metrics
                     print(
