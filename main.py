@@ -71,6 +71,18 @@ def run_model(args, hyperparams, X_train, y_train, X_test, y_test, plot=False):
     print(f"Trained on params: {p}")
     print(f"Overall training set results: {train_metrics}")
     print(f"Overall test set results: {test_metrics}")
+
+    losses_dir = "analysis/losses"
+    # Make the plot dir if it doesn't exist
+    if not os.path.exists(losses_dir):
+        os.makedirs(losses_dir)
+
+    with open(
+        f"{losses_dir}/{args.hyperparams}_{datetime.now().strftime('%Y%m%d%H%M%S')}.json",
+        "w",
+    ) as f:
+        json.dump(losses, f)
+
     if plot:
         plot_model_over_time(losses)
     return train_metrics, test_metrics
