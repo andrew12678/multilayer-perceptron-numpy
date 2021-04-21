@@ -22,8 +22,6 @@ def create_activation_layer(activation_name: str):
         return Logistic()
     elif activation_name.lower() == "tanh":
         return Tanh()
-    elif activation_name.lower() == "identity":
-        return Identity()
     else:
         raise ValueError(f"Invalid activation name: {activation_name}")
 
