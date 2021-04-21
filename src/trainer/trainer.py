@@ -57,7 +57,7 @@ class Trainer:
         )
 
     # Primary method that trains the network
-    def train(self, X_test: np.ndarray=None, y_test: np.ndarray=None):
+    def train(self, X_test: np.ndarray = None, y_test: np.ndarray = None):
         """
         X_test and y_test are used when the user wishes to return the test error during training
         """
@@ -123,7 +123,9 @@ class Trainer:
                 if X_test is not None and y_test is not None:
                     test_metrics = self.validation(X_test, y_test)
                     losses["test"][epoch] = test_metrics
-                    print(f"train acc: {train_metrics['accuracy']}. test acc: {test_metrics['accuracy']}")
+                    print(
+                        f"train acc: {train_metrics['accuracy']}. test acc: {test_metrics['accuracy']}"
+                    )
 
                 # Kill the training if our acc_loss is a nan
                 if np.isnan(acc_loss):

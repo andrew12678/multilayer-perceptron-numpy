@@ -246,6 +246,7 @@ def plot_learning_curves(data):
     )
     plt.show()
 
+
 def plot_model_over_time(losses):
     # TODO plot the training and test metrics here. Not sure which metrics to plot
 
@@ -266,6 +267,8 @@ def plot_model_over_time(losses):
     # )
     # plt.show()
     # print(losses)
+    pass
+
 
 def get_ablation_data(args, hyperparams, X_train, y_train, X_test, y_test):
     """
@@ -276,9 +279,17 @@ def get_ablation_data(args, hyperparams, X_train, y_train, X_test, y_test):
     hyperparams = hyperparams[0]
 
     # Create dict to keep track of ablation losses and execution time
-    cols = ["Best model", "Without activations", "With weight_decay=0.001", "Without momentum",
-            "Without hidden layers", "Without dropout", "Without batchnorm", "Batched 10 epochs",
-            "SGD 10 epochs"]
+    cols = [
+        "Best model",
+        "Without activations",
+        "With weight_decay=0.001",
+        "Without momentum",
+        "Without hidden layers",
+        "Without dropout",
+        "Without batchnorm",
+        "Batched 10 epochs",
+        "SGD 10 epochs",
+    ]
     losses = {k: {} for k in cols}
     for col in cols:
         new_hyperparams = hyperparams.copy()
@@ -301,9 +312,7 @@ def get_ablation_data(args, hyperparams, X_train, y_train, X_test, y_test):
             new_hyperparams["batch_size"] = 1
 
         # Run kfolds and train/test
-        cv_summary = run_kfolds(
-            args, [new_hyperparams], X_train, y_train, write=False
-        )
+        cv_summary = run_kfolds(args, [new_hyperparams], X_train, y_train, write=False)
         # Start the timer to measure the training time
         start_time = time.time()
         train_summary, test_summary = run_model(
@@ -351,6 +360,7 @@ def plot_ablation(data):
 
     print(df1)
     print(df2)
+
 
 def arg_parser():
     parser = argparse.ArgumentParser()
@@ -461,6 +471,8 @@ if __name__ == "__main__":
             )
         plot_ablation(losses)
     else:
-        run_model(args, hyperparams, X_train, y_train, X_test, y_test, plot=args.plot_errors)
+        run_model(
+            args, hyperparams, X_train, y_train, X_test, y_test, plot=args.plot_errors
+        )
 
     print("Run time: ", time.time() - start_time)
