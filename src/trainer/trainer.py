@@ -58,9 +58,11 @@ class Trainer:
 
     # Primary method that trains the network
     def train(self, X_test: np.ndarray = None, y_test: np.ndarray = None):
+
         """
         X_test and y_test are used when the user wishes to return the test error during training
         """
+
         # Ensure model is in training mode
         self.model.train()
 
@@ -104,11 +106,10 @@ class Trainer:
                 # Add batch loss to epoch loss
                 acc_loss += loss
 
+            # Calculate and store current epoch loss
             epoch_loss = acc_loss / len(batches)
             epoch_losses.append(epoch_loss)
 
-            # Check if epoch is multiple of 5
-            # if epoch % 5 == 0:
             # Save loss for current epoch
             losses["train"][epoch] = {"loss": epoch_loss}
 
@@ -117,24 +118,25 @@ class Trainer:
 
             # Get test loss if the user passed in an array
             if X_test is not None and y_test is not None:
-                losses["test"][epoch] = self.validation(X_test, y_test)
+                losses["test"][epoch] = self.test(X_test, y_test)
 
-                self.model.train()
                 # Add test accuracy to print string
                 print_str += f" Test Acc: {losses['test'][epoch]['accuracy']}"
 
+            # Print results every 5 epochs
             if epoch % 5 == 0:
                 print(print_str)
 
             # Kill the training if our recent_loss is nan
             if np.isnan(epoch_loss):
+                print(f'Epoch {epoch}: {np.nan}, Training Terminated.')
                 break
 
         # Return training loss (and test losses if user provided test data)
         return losses
 
-    # Secondary method that evaluates the network performance on a separate test dataset
-    def validation(self, X: np.ndarray, y: np.ndarray):
+    # Secondary method that evaluates the network performance on a separate validation/test dataset
+    def test(self, X: np.ndarray, y: np.ndarray):
 
         # Ensure model mode is set to testing
         self.model.test()
@@ -181,6 +183,9 @@ class Trainer:
 
         # Add loss to metrics dictionary
         metrics_dict["loss"] = test_loss
+
+        # Reset model to training mode
+        self.model.train()
 
         # Return loss and predictive accuracy of model
         return metrics_dict
