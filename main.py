@@ -9,6 +9,7 @@ from multiprocessing import Pool
 import json
 import matplotlib.pyplot as plt
 import os
+import copy
 
 from src.trainer.trainer import Trainer
 from src.utils.io import load_directory
@@ -86,6 +87,7 @@ def run_model(args, hyperparams, X_train, y_train, X_test, y_test, save=False):
 
     return train_metrics, test_metrics, losses
 
+
 def kfolds_experiment_verbose(args):
     params, X_train, y_train, n_classes, splits = args
     layer_sizes = create_layer_sizes(
@@ -98,10 +100,12 @@ def kfolds_experiment_verbose(args):
     # Set the dropout rate for each layer, keeping the first layer as 0
     dropout_rates = [0] + [params["dropout_rate"]] * params["num_hidden"]
 
-    epochs = range(1, params["num_epochs"]+1)
+    epochs = range(1, params["num_epochs"] + 1)
 
     # Instatiate loss tracker per fold
-    epoch_losses = {i: {"train_ce": 0, "val_ce": 0, "val_f1": 0, "val_acc": 0} for i in epochs}
+    epoch_losses = {
+        i: {"train_ce": 0, "val_ce": 0, "val_f1": 0, "val_acc": 0} for i in epochs
+    }
 
     # Train and test on each k-fold split
     for k, (X_train_k, y_train_k, X_val_k, y_val_k) in enumerate(splits):
@@ -345,6 +349,7 @@ def plot_model_over_time(losses):
         f"{lc_dir}/ce_{args.hyperparams}_{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
     )
 
+
 def get_ablation_data(args, hyperparams, X_train, y_train, X_test, y_test):
     """
     In this ablation analysis, we test the model specified in hyperparams with and without each
@@ -394,9 +399,13 @@ def get_ablation_data(args, hyperparams, X_train, y_train, X_test, y_test):
             args, [new_hyperparams], X_train, y_train, X_test, y_test
         )
         losses[col]["Time"] = time.time() - start_time
-        losses[col]["Train"] = train_summary["loss"]
-        losses[col]["Val"] = cv_summary[0]["cv_loss"]
-        losses[col]["Test"] = test_summary["loss"]
+        losses[col]["Train"] = train_summary
+        losses[col]["Val"] = {
+            "loss": cv_summary[0]["cv_loss"],
+            "accuracy": cv_summary[0]["accuracy"],
+            "f1_macro": cv_summary[0]["f1_macro"],
+        }
+        losses[col]["Test"] = test_summary
 
     ablation_dir = "analysis/ablations"
     # Make the plot dir if it doesn't exist
@@ -432,22 +441,30 @@ def plot_ablation(data):
     df = df.T
 
     df["Time"] = df["Time"].astype(int)
+
     ablation_dir = "analysis/ablations"
     # Make the plot dir if it doesn't exist
     if not os.path.exists(ablation_dir):
         os.makedirs(ablation_dir)
 
-    # We plot a separate table for the SGD vs batched experiment run with 10 epochs
-    df1 = df.loc[:"No batchnorm"]
-    df2 = df.loc["Batched":]
+    # Create a separate df for each evaluation metric
+    for metric in data["Best model"]["Train"]:
+        sub_df = copy.deepcopy(df)
+        sub_df["Train"] = df["Train"].apply(lambda x: x.get(metric))
+        sub_df["Val"] = df["Val"].apply(lambda x: x.get(metric))
+        sub_df["Test"] = df["Test"].apply(lambda x: x.get(metric))
 
-    with open(f"{ablation_dir}/ablation_table1.text", "w") as f:
-        f.write(df1.to_latex(index=True))
-    with open(f"{ablation_dir}/ablation_table2.text", "w") as f:
-        f.write(df2.to_latex(index=True))
+        # We plot a separate table for the SGD vs batched experiment run with 10 epochs
+        df1 = sub_df.loc[:"No batchnorm"]
+        df2 = sub_df.loc["Batched":]
 
-    print(df1)
-    print(df2)
+        with open(f"{ablation_dir}/{metric}_ablation_tab1.text", "w") as f:
+            f.write(df1.to_latex(index=True))
+        with open(f"{ablation_dir}/{metric}_ablation_tab2.text", "w") as f:
+            f.write(df2.to_latex(index=True))
+
+        print(df1)
+        print(df2)
 
 
 def arg_parser():
@@ -552,7 +569,9 @@ if __name__ == "__main__":
                     print("losses", losses)
             else:
                 # Create errors data
-                losses = run_kfolds(args, hyperparams, X_train, y_train, save_epochs=True)
+                losses = run_kfolds(
+                    args, hyperparams, X_train, y_train, save_epochs=True
+                )
             plot_model_over_time(losses)
         else:
             run_kfolds(args, hyperparams, X_train, y_train, save_epochs=False)
@@ -576,8 +595,6 @@ if __name__ == "__main__":
             )
         plot_ablation(losses)
     else:
-        run_model(
-            args, hyperparams, X_train, y_train, X_test, y_test, save=True
-        )
+        run_model(args, hyperparams, X_train, y_train, X_test, y_test, save=True)
 
     print("Run time: ", time.time() - start_time)

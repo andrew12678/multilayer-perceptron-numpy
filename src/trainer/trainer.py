@@ -123,7 +123,8 @@ class Trainer:
                 # Add test accuracy to print string
                 print_str += f" Test Acc: {losses['test'][epoch]['accuracy']}"
 
-            print(print_str)
+            if epoch % 5 == 0:
+                print(print_str)
 
             # Kill the training if our recent_loss is nan
             if np.isnan(epoch_loss):
