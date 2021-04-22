@@ -138,7 +138,7 @@ def kfolds_experiment_verbose(args):
     # Divide losses by the number of folds
     for col in epoch_losses[1]:
         for epoch in epochs:
-            epoch_losses[epoch][col] /= params["num_epochs"]
+            epoch_losses[epoch][col] /= len(splits)
     return epoch_losses
 
 
@@ -263,8 +263,7 @@ def get_learning_curve_data(args, hyperparams, X_train, y_train):
         summary = run_kfolds(args, hyperparams, X, y, write=False)
         train_losses.append(summary[0]["train_loss"])
         cv_losses.append(summary[0]["cv_loss"])
-    # print(train_losses)
-    # print(cv_losses)
+
     data = {
         "num_examples": num_examples,
         "train_losses": train_losses,
@@ -304,20 +303,20 @@ def plot_learning_curves(data):
 
 
 def plot_model_over_time(losses):
+    # Assume data is a list with a single element
+    losses = losses[0]
 
-    epochs = [int(i) for i in losses["train"].keys()]
+    epochs = [int(i) for i in losses]
+    # Get list of errors in order of epoch
+    metric_set = list(losses.values())
     # Get train losses in order of epoch
     # Note that python 3.6 onwards retains order in dictionaries
-    train_values = list(losses["train"].values())
-    train_ce = [d["loss"] for d in train_values]
-    # train_acc = [d["accuracy"] for d in train_values]
-    # train_f1 = [d["f1_macro"] for d in train_values]
+    train_ce = [d["train_ce"] for d in metric_set]
 
     # Get test losses in order of epoch
-    test_values = list(losses["test"].values())
-    test_ce = [d["loss"] for d in test_values]
-    test_acc = [d["accuracy"] for d in test_values]
-    test_f1 = [d["f1_macro"] for d in test_values]
+    val_ce = [d["val_ce"] for d in metric_set]
+    val_acc = [d["val_acc"] for d in metric_set]
+    val_f1 = [d["val_f1"] for d in metric_set]
 
     lc_dir = "analysis/losses"
     # Make the plot dir if it doesn't exist
@@ -326,37 +325,25 @@ def plot_model_over_time(losses):
 
     plt.figure()
     plt.style.use("ggplot")
-    # plt.plot(epochs, train_acc, "-o", label="Train Accuracy")
-    plt.plot(epochs, test_acc, "-o", label="Test Accuracy")
+    plt.plot(epochs, val_acc, "-o", label="Validation Accuracy")
+    plt.plot(epochs, val_f1, "-o", label="Validation F1 Score")
     plt.legend(loc="upper center", bbox_to_anchor=(0.5, 1.05))
     plt.xlabel("Number of epochs")
-    plt.ylabel("Accuracy")
+    # plt.ylabel("Accuracy")
     plt.savefig(
-        f"{lc_dir}/accuracy_{args.hyperparams}_{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
+        f"{lc_dir}/accuracy_f1_{args.hyperparams}_{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
     )
 
     plt.figure()
     plt.style.use("ggplot")
     plt.plot(epochs, train_ce, "-o", label="Train CE loss")
-    plt.plot(epochs, test_ce, "-o", label="Test CE loss")
+    plt.plot(epochs, val_ce, "-o", label="Validation CE loss")
     plt.legend(loc="upper center", bbox_to_anchor=(0.5, 1.05))
     plt.xlabel("Number of epochs")
     plt.ylabel("Cross Entropy Loss")
     plt.savefig(
         f"{lc_dir}/ce_{args.hyperparams}_{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
     )
-
-    plt.figure()
-    plt.style.use("ggplot")
-    # plt.plot(epochs, train_f1, "-o", label="Train F1 score")
-    plt.plot(epochs, test_f1, "-o", label="Test F1 score")
-    plt.legend(loc="upper center", bbox_to_anchor=(0.5, 1.05))
-    plt.xlabel("Number of epochs")
-    plt.ylabel("F1 score (averaged)")
-    plt.savefig(
-        f"{lc_dir}/f1_{args.hyperparams}_{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
-    )
-
 
 def get_ablation_data(args, hyperparams, X_train, y_train, X_test, y_test):
     """
@@ -489,24 +476,17 @@ def arg_parser():
         "-s", "--seed", default=42, type=int, help="Random seed used for experiment"
     )
     parser.add_argument(
-        "-se",
-        "--save_epochs",
-        default=0,
-        type=int,
-        help="Whether to save the loss per epoch in kfolds validation",
-    )
-    parser.add_argument(
         "-pe",
         "--plot_errors",
         default=0,
         type=int,
-        help="Whether to plot model errors over time",
+        help="Whether to plot model cross validation errors over time",
     )
     parser.add_argument(
         "-ef",
-        "--errors_file",
+        "--error_file",
         type=str,
-        help="Name of file with saved data for plotting errors",
+        help="Name of file with saved kfolds data for plotting errors",
     )
     parser.add_argument(
         "-lc",
@@ -564,7 +544,18 @@ if __name__ == "__main__":
         hyperparams = [hyperparams]
 
     if args.kfolds:
-        run_kfolds(args, hyperparams, X_train, y_train, save_epochs=args.save_epochs)
+        if args.plot_errors:
+            if args.error_file:
+                # If we have a saved errors file, don't generate a new one
+                with open(args.error_file, "r") as f:
+                    losses = json.load(f)
+                    print("losses", losses)
+            else:
+                # Create errors data
+                losses = run_kfolds(args, hyperparams, X_train, y_train, save_epochs=True)
+            plot_model_over_time(losses)
+        else:
+            run_kfolds(args, hyperparams, X_train, y_train, save_epochs=False)
     elif args.learning_curves:
         if args.learning_curves_file:
             # If we have a saved learning_curves file, don't generate a new one
@@ -585,15 +576,8 @@ if __name__ == "__main__":
             )
         plot_ablation(losses)
     else:
-        if args.errors_file:
-            # If we have a saved errors file, don't generate a new one
-            with open(args.errors_file, "r") as f:
-                losses = json.load(f)
-        else:
-            # Create errors data
-            _, _, losses = run_model(
-                args, hyperparams, X_train, y_train, X_test, y_test, save=True
-            )
-        plot_model_over_time(losses)
+        run_model(
+            args, hyperparams, X_train, y_train, X_test, y_test, save=True
+        )
 
     print("Run time: ", time.time() - start_time)

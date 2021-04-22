@@ -44,11 +44,16 @@ python main.py -hy grid-search1 -kf 1 -p [number of processors to use]
 ```
 where _grid-search1_ represents the hyperparameter values to search over, defined in _hyperparams/config.yml_.
 
+To plot the best model train and validation errors with respect to the number of epochs, run:
+```
+python main.py -kf 1 -pe 1 -hy params-best
+```
 To generate a model performance table after a (set of) grid search, run:
 ```
 python analysis/hyperparam_plots.py -rf [set of results files]
 ```
 where [set of results files] can be one or more grid search result json files from _results/_.
+
 ## Folder Structure
 
 ```
