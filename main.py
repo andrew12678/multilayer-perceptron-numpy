@@ -249,24 +249,57 @@ def plot_learning_curves(data):
 def plot_model_over_time(losses):
     # TODO plot the training and test metrics here. Not sure which metrics to plot
 
-    # lc_dir = "analysis/model_plots"
-    # # Make the plot dir if it doesn't exist
-    # if not os.path.exists(lc_dir):
-    #     os.makedirs(lc_dir)
-    # plt.style.use("ggplot")
-    # plt.plot(data["num_examples"], data["train_losses"], "-o", label="Training Loss")
-    # plt.plot(data["num_examples"], data["cv_losses"], "-o", label="Validation Loss")
-    # plt.legend(loc="upper center", bbox_to_anchor=(0.5, 1.05))
-    # plt.xlabel("Number of examples")
-    # plt.ylabel("Cross Entropy loss")
-    # # The title will be better in latex
-    # # plt.title("Learning curves for best model")
-    # plt.savefig(
-    #     f"{lc_dir}/plot_{args.hyperparams}_{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
-    # )
-    # plt.show()
-    # print(losses)
-    pass
+    epochs = [int(i) for i in losses["train"].keys()]
+    # Get train losses in order of epoch
+    # Note that python 3.6 onwards retains order in dictionaries
+    train_values = list(losses["train"].values())
+    train_ce = [d["loss"] for d in train_values]
+    train_acc = [d["accuracy"] for d in train_values]
+    train_f1 = [d["f1_macro"] for d in train_values]
+
+    # Get test losses in order of epoch
+    test_values = list(losses["test"].values())
+    test_ce = [d["loss"] for d in test_values]
+    test_acc = [d["accuracy"] for d in test_values]
+    test_f1 = [d["f1_macro"] for d in test_values]
+
+    lc_dir = "analysis/losses"
+    # Make the plot dir if it doesn't exist
+    if not os.path.exists(lc_dir):
+        os.makedirs(lc_dir)
+
+    plt.figure()
+    plt.style.use("ggplot")
+    plt.plot(epochs, train_acc, "-o", label="Train Accuracy")
+    plt.plot(epochs, test_acc, "-o", label="Test Accuracy")
+    plt.legend(loc="upper center", bbox_to_anchor=(0.5, 1.05))
+    plt.xlabel("Number of epochs")
+    plt.ylabel("Accuracy")
+    plt.savefig(
+        f"{lc_dir}/accuracy_{args.hyperparams}_{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
+    )
+
+    plt.figure()
+    plt.style.use("ggplot")
+    plt.plot(epochs, train_ce, "-o", label="Train CE loss")
+    plt.plot(epochs, test_ce, "-o", label="Test CE loss")
+    plt.legend(loc="upper center", bbox_to_anchor=(0.5, 1.05))
+    plt.xlabel("Number of epochs")
+    plt.ylabel("Cross Entropy Loss")
+    plt.savefig(
+        f"{lc_dir}/ce_{args.hyperparams}_{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
+    )
+
+    plt.figure()
+    plt.style.use("ggplot")
+    plt.plot(epochs, train_f1, "-o", label="Train F1 score")
+    plt.plot(epochs, test_f1, "-o", label="Test F1 score")
+    plt.legend(loc="upper center", bbox_to_anchor=(0.5, 1.05))
+    plt.xlabel("Number of epochs")
+    plt.ylabel("F1 score (averaged)")
+    plt.savefig(
+        f"{lc_dir}/f1_{args.hyperparams}_{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
+    )
 
 
 def get_ablation_data(args, hyperparams, X_train, y_train, X_test, y_test):
