@@ -37,7 +37,7 @@ if __name__ == "__main__":
     else:
         hyperparams = [hyperparams]
 
-    # Check if kfolds experiment and what logging is to be conducted
+    # Check if kfolds experiment and what plotting is to be conducted
     if args.kfolds:
         if args.plot_errors:
 
