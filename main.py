@@ -69,30 +69,37 @@ def run_model(args, hyperparams, X_train, y_train, X_test, y_test, save=False):
     # Get training error metrics with model in test mode (this turns off dropout among others)
     train_metrics = trainer.validation(X=X_train, y=y_train)
 
+    # Display final results
     print(f"Trained on params: {p}")
     print(f"Overall training set results: {train_metrics}")
     print(f"Overall test set results: {test_metrics}")
 
+    # Check if losses are to be saved
     if save:
         losses_dir = "analysis/losses"
         # Make the plot dir if it doesn't exist
         if not os.path.exists(losses_dir):
             os.makedirs(losses_dir)
 
+        # Write to file
         with open(
             f"{losses_dir}/{args.hyperparams}_{datetime.now().strftime('%Y%m%d%H%M%S')}.json",
             "w",
         ) as f:
             json.dump(losses, f)
 
+    # Return metrics
     return train_metrics, test_metrics, losses
 
 
 def kfolds_experiment_verbose(args):
+
+    # Extract arguments
     params, X_train, y_train, n_classes, splits = args
     layer_sizes = create_layer_sizes(
         X_train.shape[1], n_classes, params["num_hidden"], params["hidden_size"]
     )
+
     # Set the activations for each network layer. e.g. if relu and 2 hidden, then our activations
     # are ["relu", "relu", None] since we don't have an activation on the final layer
     activations = [params["activation"]] * params["num_hidden"] + [None]
@@ -100,15 +107,15 @@ def kfolds_experiment_verbose(args):
     # Set the dropout rate for each layer, keeping the first layer as 0
     dropout_rates = [0] + [params["dropout_rate"]] * params["num_hidden"]
 
-    epochs = range(1, params["num_epochs"] + 1)
-
     # Instatiate loss tracker per fold
+    epochs = range(1, params["num_epochs"] + 1)
     epoch_losses = {
         i: {"train_ce": 0, "val_ce": 0, "val_f1": 0, "val_acc": 0} for i in epochs
     }
 
     # Train and test on each k-fold split
     for k, (X_train_k, y_train_k, X_val_k, y_val_k) in enumerate(splits):
+
         # Define model using current architecture
         model = MLP(
             layer_sizes=layer_sizes,
@@ -139,7 +146,7 @@ def kfolds_experiment_verbose(args):
             epoch_losses[epoch]["val_acc"] += losses["test"][epoch]["accuracy"]
             epoch_losses[epoch]["val_f1"] += losses["test"][epoch]["f1_macro"]
 
-    # Divide losses by the number of folds
+    # Get average losses per fold
     for col in epoch_losses[1]:
         for epoch in epochs:
             epoch_losses[epoch][col] /= len(splits)
@@ -147,10 +154,13 @@ def kfolds_experiment_verbose(args):
 
 
 def kfolds_experiment(args):
+
+    # Extract arguments
     params, X_train, y_train, n_classes, splits = args
     layer_sizes = create_layer_sizes(
         X_train.shape[1], n_classes, params["num_hidden"], params["hidden_size"]
     )
+
     # Set the activations for each network layer. e.g. if relu and 2 hidden, then our activations
     # are ["relu", "relu", None] since we don't have an activation on the final layer
     activations = [params["activation"]] * params["num_hidden"] + [None]
@@ -163,6 +173,7 @@ def kfolds_experiment(args):
 
     # Train and test on each k-fold split
     for k, (X_train_k, y_train_k, X_val_k, y_val_k) in enumerate(splits):
+
         # Define model using current architecture
         model = MLP(
             layer_sizes=layer_sizes,
@@ -190,6 +201,7 @@ def kfolds_experiment(args):
 
         # Get training loss for fold when the model is in "test" model (e.g. no dropout)
         metrics["train_loss"] += trainer.validation(X=X_train_k, y=y_train_k)["loss"]
+
         # Extract validation loss and predicted labels
         val_results = trainer.validation(X=X_val_k, y=y_val_k)
         val_results["cv_loss"] = val_results["loss"]
@@ -199,17 +211,21 @@ def kfolds_experiment(args):
             if met != "train_loss":
                 metrics[met] += val_results[met]
 
-    # Divide the total accumualted metrics by the number of folds
+    # Divide the total accumulated metrics by the number of folds
     for met in metrics:
         metrics[met] /= len(splits)
 
+    # Display model and performance
     print(f"Trained on params: {params}")
     print(f"Overall cross-validation loss: {metrics['cv_loss']}")
     summary = {**params, **metrics}
+
+    # Return model data
     return summary
 
 
 def run_kfolds(args, hyperparams, X_train, y_train, write=True, save_epochs=False):
+
     # Get number of classes
     n_classes = len(np.unique(y_train))
 
@@ -236,8 +252,8 @@ def run_kfolds(args, hyperparams, X_train, y_train, write=True, save_epochs=Fals
         for p in pool_args:
             summary.append(experiment(p))
 
+    # Write results to unique file
     if write:
-        # Write results to unique file
         results_file = (
             f"results/{args.hyperparams}_{datetime.now().strftime('%Y%m%d%H%M%S')}.json"
         )
@@ -247,7 +263,8 @@ def run_kfolds(args, hyperparams, X_train, y_train, write=True, save_epochs=Fals
     return summary
 
 
-def get_learning_curve_data(args, hyperparams, X_train, y_train):
+def get_learning_curve_data(args, hyperparams, X_train, y_train, lc_dir="analysis/learning_curves"):
+
     # Randomly shuffle all data
     idxs = list(range(len(X_train)))
     np.random.shuffle(idxs)
@@ -257,13 +274,14 @@ def get_learning_curve_data(args, hyperparams, X_train, y_train):
     train_losses = []
     cv_losses = []
     increment = 5000
+
     # Number of examples to increase for each datapoint (e.g. 5000 -> 5000, 10000, ..., 50000)
     num_examples = list(range(increment, len(X_train) + 1, increment))
 
+    # loop through samples and extract metrics
     for i in num_examples:
         X = X_train_shuffled[:i]
         y = y_train_shuffled[:i]
-        # Get kfolds scores for this set of examples
         summary = run_kfolds(args, hyperparams, X, y, write=False)
         train_losses.append(summary[0]["train_loss"])
         cv_losses.append(summary[0]["cv_loss"])
@@ -274,32 +292,35 @@ def get_learning_curve_data(args, hyperparams, X_train, y_train):
         "cv_losses": cv_losses,
     }
 
-    lc_dir = "analysis/learning_curves"
-    # Make the plot dir if it doesn't exist
+    # Make the learning curve directory if it doesn't exist
     if not os.path.exists(lc_dir):
         os.makedirs(lc_dir)
 
+    # Write results to file
     with open(
         f"{lc_dir}/{args.hyperparams}_{datetime.now().strftime('%Y%m%d%H%M%S')}.json",
         "w",
     ) as f:
         json.dump(data, f)
+
+    # Return training and validation results
     return data
 
 
-def plot_learning_curves(data):
-    lc_dir = "analysis/learning_curves"
-    # Make the plot dir if it doesn't exist
+def plot_learning_curves(data, lc_dir="analysis/learning_curves"):
+
+    # Make the learning curve plot directory if it doesn't exist
     if not os.path.exists(lc_dir):
         os.makedirs(lc_dir)
+
+    # Create plot and save to directory
     plt.style.use("ggplot")
     plt.plot(data["num_examples"], data["train_losses"], "-o", label="Training Loss")
     plt.plot(data["num_examples"], data["cv_losses"], "-o", label="Validation Loss")
     plt.legend(loc="upper center", bbox_to_anchor=(0.5, 1.05))
     plt.xlabel("Number of examples")
     plt.ylabel("Cross Entropy loss")
-    # The title will be better in latex
-    # plt.title("Learning curves for best model")
+
     plt.savefig(
         f"{lc_dir}/plot_{args.hyperparams}_{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
     )
@@ -307,6 +328,7 @@ def plot_learning_curves(data):
 
 
 def plot_model_over_time(losses):
+
     # Assume data is a list with a single element
     losses = losses[0]
 
@@ -350,11 +372,13 @@ def plot_model_over_time(losses):
     )
 
 
-def get_ablation_data(args, hyperparams, X_train, y_train, X_test, y_test):
+def get_ablation_data(args, hyperparams, X_train, y_train, X_test, y_test, ablation_dir="analysis/ablations"):
+
     """
     In this ablation analysis, we test the model specified in hyperparams with and without each
     module.
     """
+
     # We assume that hyperparams is a list of length 1 to run this function
     hyperparams = hyperparams[0]
 
@@ -393,6 +417,7 @@ def get_ablation_data(args, hyperparams, X_train, y_train, X_test, y_test):
 
         # Run kfolds and train/test
         cv_summary = run_kfolds(args, [new_hyperparams], X_train, y_train, write=False)
+
         # Start the timer to measure the training time
         start_time = time.time()
         train_summary, test_summary, _ = run_model(
@@ -407,7 +432,6 @@ def get_ablation_data(args, hyperparams, X_train, y_train, X_test, y_test):
         }
         losses[col]["Test"] = test_summary
 
-    ablation_dir = "analysis/ablations"
     # Make the plot dir if it doesn't exist
     if not os.path.exists(ablation_dir):
         os.makedirs(ablation_dir)
@@ -417,15 +441,18 @@ def get_ablation_data(args, hyperparams, X_train, y_train, X_test, y_test):
         "w",
     ) as f:
         json.dump(losses, f)
+
     return losses
 
 
-def plot_ablation(data):
-    """Plot ablation tables"""
-    df = pd.DataFrame(data)
+def plot_ablation(data, ablation_dir = "analysis/ablations"):
 
-    df = df.round(3)
-    df = df.rename(
+    """Plot ablation tables"""
+
+    # Create dataframe of metric data
+    ablation_df = pd.DataFrame(data)
+    ablation_df = ablation_df.round(3)
+    ablation_df = ablation_df.rename(
         columns={
             "Without activations": "No activations",
             "With weight_decay=0.001": "wd=0.001",
@@ -438,33 +465,32 @@ def plot_ablation(data):
         }
     )
     # Transpose to make multi row instead of multi column
-    df = df.T
+    ablation_df = ablation_df.T
+    ablation_df["Time"] = ablation_df["Time"].astype(int)
 
-    df["Time"] = df["Time"].astype(int)
-
-    ablation_dir = "analysis/ablations"
     # Make the plot dir if it doesn't exist
     if not os.path.exists(ablation_dir):
         os.makedirs(ablation_dir)
 
     # Create a separate df for each evaluation metric
     for metric in data["Best model"]["Train"]:
-        sub_df = copy.deepcopy(df)
-        sub_df["Train"] = df["Train"].apply(lambda x: x.get(metric))
-        sub_df["Val"] = df["Val"].apply(lambda x: x.get(metric))
-        sub_df["Test"] = df["Test"].apply(lambda x: x.get(metric))
+        sub_df = copy.deepcopy(ablation_df)
+        sub_df["Train"] = ablation_df["Train"].apply(lambda x: x.get(metric))
+        sub_df["Val"] = ablation_df["Val"].apply(lambda x: x.get(metric))
+        sub_df["Test"] = ablation_df["Test"].apply(lambda x: x.get(metric))
 
         # We plot a separate table for the SGD vs batched experiment run with 10 epochs
-        df1 = sub_df.loc[:"No batchnorm"]
-        df2 = sub_df.loc["Batched":]
+        SGD_df = sub_df.loc[:"No batchnorm"]
+        BatchGD_df = sub_df.loc["Batched":]
 
+        # Write data to file and display
         with open(f"{ablation_dir}/{metric}_ablation_tab1.text", "w") as f:
-            f.write(df1.to_latex(index=True))
+            f.write(SGD_df.to_latex(index=True))
         with open(f"{ablation_dir}/{metric}_ablation_tab2.text", "w") as f:
-            f.write(df2.to_latex(index=True))
+            f.write(BatchGD_df.to_latex(index=True))
 
-        print(df1)
-        print(df2)
+        print(SGD_df)
+        print(BatchGD_df)
 
 
 def arg_parser():
@@ -539,8 +565,8 @@ def arg_parser():
 if __name__ == "__main__":
     args = arg_parser()
 
+    # Get start time and set random seed for reproducibility
     start_time = time.time()
-    # Set a random seed to reproduce results
     np.random.seed(args.seed)
 
     # Import training and test data
@@ -560,6 +586,7 @@ if __name__ == "__main__":
     else:
         hyperparams = [hyperparams]
 
+    #
     if args.kfolds:
         if args.plot_errors:
             if args.error_file:
@@ -575,6 +602,8 @@ if __name__ == "__main__":
             plot_model_over_time(losses)
         else:
             run_kfolds(args, hyperparams, X_train, y_train, save_epochs=False)
+
+    #
     elif args.learning_curves:
         if args.learning_curves_file:
             # If we have a saved learning_curves file, don't generate a new one
@@ -583,6 +612,8 @@ if __name__ == "__main__":
         else:
             data = get_learning_curve_data(args, hyperparams, X_train, y_train)
         plot_learning_curves(data)
+
+    #
     elif args.ablation:
         if args.ablation_file:
             # If we have a saved ablation file, don't generate a new one
@@ -594,6 +625,8 @@ if __name__ == "__main__":
                 args, hyperparams, X_train, y_train, X_test, y_test
             )
         plot_ablation(losses)
+
+    #
     else:
         run_model(args, hyperparams, X_train, y_train, X_test, y_test, save=True)
 
