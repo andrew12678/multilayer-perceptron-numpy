@@ -86,8 +86,63 @@ def run_model(args, hyperparams, X_train, y_train, X_test, y_test, save=False):
 
     return train_metrics, test_metrics, losses
 
+def kfolds_experiment_verbose(args):
+    params, X_train, y_train, n_classes, splits = args
+    layer_sizes = create_layer_sizes(
+        X_train.shape[1], n_classes, params["num_hidden"], params["hidden_size"]
+    )
+    # Set the activations for each network layer. e.g. if relu and 2 hidden, then our activations
+    # are ["relu", "relu", None] since we don't have an activation on the final layer
+    activations = [params["activation"]] * params["num_hidden"] + [None]
 
-def run_experiment(args):
+    # Set the dropout rate for each layer, keeping the first layer as 0
+    dropout_rates = [0] + [params["dropout_rate"]] * params["num_hidden"]
+
+    epochs = range(1, params["num_epochs"]+1)
+
+    # Instatiate loss tracker per fold
+    epoch_losses = {i: {"train_ce": 0, "val_ce": 0, "val_f1": 0, "val_acc": 0} for i in epochs}
+
+    # Train and test on each k-fold split
+    for k, (X_train_k, y_train_k, X_val_k, y_val_k) in enumerate(splits):
+        # Define model using current architecture
+        model = MLP(
+            layer_sizes=layer_sizes,
+            activations=activations,
+            dropout_rates=dropout_rates,
+            batch_normalisation=params["batch_normalisation"],
+        )
+
+        # Create trainer object to handle train each epoch (define input data and parameters)
+        trainer = Trainer(
+            X=X_train_k,
+            y=y_train_k,
+            model=model,
+            batch_size=params["batch_size"],
+            n_epochs=params["num_epochs"],
+            loss=params["loss"],
+            optimiser=params["optimiser"],
+            learning_rate=params["learning_rate"],
+            weight_decay=params["weight_decay"],
+            momentum=params["momentum"],
+        )
+
+        # Train model on training set, returning losses for each epoch on train and val sets
+        losses = trainer.train(X_test=X_val_k, y_test=y_val_k)
+        for epoch in epochs:
+            epoch_losses[epoch]["train_ce"] += losses["train"][epoch]["loss"]
+            epoch_losses[epoch]["val_ce"] += losses["test"][epoch]["loss"]
+            epoch_losses[epoch]["val_acc"] += losses["test"][epoch]["accuracy"]
+            epoch_losses[epoch]["val_f1"] += losses["test"][epoch]["f1_macro"]
+
+    # Divide losses by the number of folds
+    for col in epoch_losses[1]:
+        for epoch in epochs:
+            epoch_losses[epoch][col] /= params["num_epochs"]
+    return epoch_losses
+
+
+def kfolds_experiment(args):
     params, X_train, y_train, n_classes, splits = args
     layer_sizes = create_layer_sizes(
         X_train.shape[1], n_classes, params["num_hidden"], params["hidden_size"]
@@ -150,7 +205,7 @@ def run_experiment(args):
     return summary
 
 
-def run_kfolds(args, hyperparams, X_train, y_train, write=True):
+def run_kfolds(args, hyperparams, X_train, y_train, write=True, save_epochs=False):
     # Get number of classes
     n_classes = len(np.unique(y_train))
 
@@ -166,14 +221,16 @@ def run_kfolds(args, hyperparams, X_train, y_train, write=True):
     for p in hyperparams:
         pool_args.append((p, X_train, y_train, n_classes, splits))
 
+    # Define the function which runs the experiment
+    experiment = kfolds_experiment_verbose if save_epochs else kfolds_experiment
     summary = []
     if args.processes > 1:
         print(f"Running with {args.processes} processors.")
         with Pool(processes=args.processes) as pool:
-            summary.append(pool.map(run_experiment, pool_args))
+            summary.append(pool.map(experiment, pool_args))
     else:
         for p in pool_args:
-            summary.append(run_experiment(p))
+            summary.append(experiment(p))
 
     if write:
         # Write results to unique file
@@ -247,15 +304,14 @@ def plot_learning_curves(data):
 
 
 def plot_model_over_time(losses):
-    # TODO plot the training and test metrics here. Not sure which metrics to plot
 
     epochs = [int(i) for i in losses["train"].keys()]
     # Get train losses in order of epoch
     # Note that python 3.6 onwards retains order in dictionaries
     train_values = list(losses["train"].values())
     train_ce = [d["loss"] for d in train_values]
-    train_acc = [d["accuracy"] for d in train_values]
-    train_f1 = [d["f1_macro"] for d in train_values]
+    # train_acc = [d["accuracy"] for d in train_values]
+    # train_f1 = [d["f1_macro"] for d in train_values]
 
     # Get test losses in order of epoch
     test_values = list(losses["test"].values())
@@ -270,7 +326,7 @@ def plot_model_over_time(losses):
 
     plt.figure()
     plt.style.use("ggplot")
-    plt.plot(epochs, train_acc, "-o", label="Train Accuracy")
+    # plt.plot(epochs, train_acc, "-o", label="Train Accuracy")
     plt.plot(epochs, test_acc, "-o", label="Test Accuracy")
     plt.legend(loc="upper center", bbox_to_anchor=(0.5, 1.05))
     plt.xlabel("Number of epochs")
@@ -292,7 +348,7 @@ def plot_model_over_time(losses):
 
     plt.figure()
     plt.style.use("ggplot")
-    plt.plot(epochs, train_f1, "-o", label="Train F1 score")
+    # plt.plot(epochs, train_f1, "-o", label="Train F1 score")
     plt.plot(epochs, test_f1, "-o", label="Test F1 score")
     plt.legend(loc="upper center", bbox_to_anchor=(0.5, 1.05))
     plt.xlabel("Number of epochs")
@@ -433,6 +489,13 @@ def arg_parser():
         "-s", "--seed", default=42, type=int, help="Random seed used for experiment"
     )
     parser.add_argument(
+        "-se",
+        "--save_epochs",
+        default=0,
+        type=int,
+        help="Whether to save the loss per epoch in kfolds validation",
+    )
+    parser.add_argument(
         "-pe",
         "--plot_errors",
         default=0,
@@ -501,7 +564,7 @@ if __name__ == "__main__":
         hyperparams = [hyperparams]
 
     if args.kfolds:
-        run_kfolds(args, hyperparams, X_train, y_train)
+        run_kfolds(args, hyperparams, X_train, y_train, save_epochs=args.save_epochs)
     elif args.learning_curves:
         if args.learning_curves_file:
             # If we have a saved learning_curves file, don't generate a new one

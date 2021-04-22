@@ -108,21 +108,20 @@ class Trainer:
             epoch_losses.append(epoch_loss)
 
             # Check if epoch is multiple of 5
-            if epoch % 5 == 0:
+            if epoch % 1 == 0:
                 # Save loss for current epoch
                 losses["train"][epoch] = {"loss": epoch_loss}
 
                 # Create string for printing average loss and accuracy
-                print_str = f"Epoch: {epoch}. Train Loss: {np.round(epoch_loss, 4)}. "
+                print_str = f"Epoch: {epoch}. Train Loss: {np.round(epoch_loss, 4)}."
 
                 # Get test loss if the user passed in an array
                 if X_test is not None and y_test is not None:
-                    test_metrics = self.validation(X_test, y_test)
-                    losses["test"][epoch] = test_metrics
+                    losses["test"][epoch] = self.validation(X_test, y_test)
 
                     self.model.train()
                     # Add test accuracy to print string
-                    print_str += f" Test Acc: {test_metrics['accuracy']}"
+                    print_str += f" Test Acc: {losses['test'][epoch]['accuracy']}"
 
                 print(print_str)
 
