@@ -67,8 +67,8 @@ class Trainer:
         # Instatiate dictionary to return
         losses = {"train": {}, "test": {}}
 
-        # Instantiate accumulated loss variable for training
-        acc_loss = 0
+        # Instantiate list to store training losses for each epoch to be used for plotting
+        epoch_losses = []
 
         # Loop through designated number of epochs
         for epoch in range(1, self.n_epochs + 1):
@@ -79,6 +79,7 @@ class Trainer:
             # Get batches indices for this epoch
             batches = self.batcher.generate_batch_indices()
 
+            acc_loss = 0
             # Loop through all batches
             for batch in batches:
 
@@ -100,36 +101,33 @@ class Trainer:
                 # Update weights
                 self.optimiser.step()
 
-                # Add batch loss to accumulated loss
+                # Add batch loss to epoch loss
                 acc_loss += loss
 
-            current_loss = acc_loss / (epoch * len(batches))
+            epoch_loss = acc_loss / len(batches)
+            epoch_losses.append(epoch_loss)
+
             # Check if epoch is multiple of 5
             if epoch % 5 == 0:
-                # Display average loss
-                print(f"Epoch: {epoch}, loss: {current_loss}")
+                # Save loss for current epoch
+                losses["train"][epoch] = {"loss": epoch_loss}
 
-                # Get preds for current batch
-                y_hat = np.argmax(output, axis=1)
-                # Convert one_hot to index for batch labels
-                y_batch_true = np.argmax(y_batch, axis=1)
-
-                # Calculate metrics for training set
-                train_metrics = calculate_metrics(y=y_batch_true, y_hat=y_hat)
-                train_metrics["loss"] = current_loss
-                losses["train"][epoch] = train_metrics
+                # Create string for printing average loss and accuracy
+                print_str = f"Epoch: {epoch}. Train Loss: {np.round(epoch_loss, 4)}. "
 
                 # Get test loss if the user passed in an array
                 if X_test is not None and y_test is not None:
                     test_metrics = self.validation(X_test, y_test)
                     losses["test"][epoch] = test_metrics
-                    print(
-                        f"train acc: {train_metrics['accuracy']}. test acc: {test_metrics['accuracy']}"
-                    )
-                    self.model.train()
 
-                # Kill the training if our acc_loss is a nan
-                if np.isnan(acc_loss):
+                    self.model.train()
+                    # Add test accuracy to print string
+                    print_str += f" Test Acc: {test_metrics['accuracy']}"
+
+                print(print_str)
+
+                # Kill the training if our recent_loss is nan
+                if np.isnan(epoch_loss):
                     break
 
         # Return training loss (and test losses if user provided test data)
