@@ -4,6 +4,10 @@ Welcome to our assignment, we made it our goal to have a clear OOP setup for our
  
 For experimentation, we have implemented YAML files to change configurations.
 
+The general model design can be seen below (for the assumed 128-input and 10-output dimensions):
+
+![Model Architecture](Model_Architecture.png)
+
 
 ## Dependencies
 
@@ -20,13 +24,13 @@ Docstrings are Google style
 ## Running the code
 Note that the below commands will run the best model, which corresponds to _params-best_ in _hyperparams/config.yml_. To run another model, replace _params-best_ with another model name in _hyperparams/config.yml_.
 
-To run the best model on the entire training set and test on the test set, run:
+To **run the best model** on the entire training set and test on the test set, run:
 ```
 python main.py -hy params-best
 ```
 The above command takes ~22 minutes on a machine with 12 cores.
 
-To create learning curves for the best model, run:
+To create **learning curves for the best model**, run:
 ```
 python main.py -lc 1 -hy params-best
 ```
