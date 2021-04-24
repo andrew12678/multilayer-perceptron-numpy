@@ -24,35 +24,43 @@ Docstrings are Google style
 ## Running the code
 Note that the below commands will run the best model, which corresponds to _params-best_ in _hyperparams/config.yml_. To run another model, replace _params-best_ with another model name in _hyperparams/config.yml_.
 
-To **run the best model** on the entire training set and test on the test set, run:
+### Prepare Data
+
+Please create a "data" folder in the root directory, and import the following files:
+1. test_data.npy 
+2. test_label.npy 
+3. train_data.npy 
+4. train_label.npy 
+
+#### To run the best model on the entire training set and test on the test set, run:
 ```
 python main.py -hy params-best
 ```
 The above command takes ~22 minutes on a machine with 12 cores.
 
-To create **learning curves for the best model**, run:
+#### To create learning curves for the best model, run:
 ```
 python main.py -lc 1 -hy params-best
 ```
-To run the complete ablation studies for the best model, run:
+#### To run the complete ablation studies for the best model, run:
 ```
 python main.py -a 1 -hy params-best
 ```
-For 5-folds stratified cross validation with the best model, run:
+#### For 5-folds stratified cross validation with the best model, run:
 ```
 python main.py -hy params-best -kf 1 -p [number of processors to use]
 ```
-To find the best model using a grid-search with 5-folds cross validation, run:
+#### To find the best model using a grid-search with 5-folds cross validation, run:
 ```
 python main.py -hy grid-search1 -kf 1 -p [number of processors to use]
 ```
 where _grid-search1_ represents the hyperparameter values to search over, defined in _hyperparams/config.yml_.
 
-To plot the best model train and validation errors with respect to the number of epochs, run:
+#### To plot the best model train and validation errors with respect to the number of epochs, run:
 ```
 python main.py -kf 1 -pe 1 -hy params-best
 ```
-To generate a model performance table after a (set of) grid search, run:
+#### To generate a model performance table after a (set of) grid search, run:
 ```
 python analysis/hyperparam_plots.py -rf [set of results files]
 ```
