@@ -26,11 +26,11 @@ Note that the below commands will run the best model, which corresponds to _para
 
 ### Prepare Data
 
-Please create a "data" folder in the root directory, and import the following files: <br />
-    1. test_data.npy <br />
-    2. test_label.npy <br />
-    3. train_data.npy <br />
-    4. train_label.npy 
+Please create a "data" folder in the root directory, and import the following files:
+1. test_data.npy 
+2. test_label.npy 
+3. train_data.npy 
+4. train_label.npy 
 
 #### To run the best model on the entire training set and test on the test set, run:
 ```
