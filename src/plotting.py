@@ -3,6 +3,7 @@ import time
 import matplotlib.pyplot as plt
 import copy
 import os
+import json
 from datetime import datetime
 
 
@@ -65,6 +66,7 @@ def plot_model_over_time(losses, args):
     plt.ylabel("Cross Entropy Loss")
     plt.savefig(f"{lc_dir}/ce_{datetime.now().strftime('%Y%m%d%H%M%S')}.png")
 
+
 def plot_ablation(data, ablation_dir="analysis/ablations"):
 
     """Plot ablation tables"""
@@ -113,3 +115,76 @@ def plot_ablation(data, ablation_dir="analysis/ablations"):
 
         print(SGD_df)
         print(mini_batchGD_df)
+
+
+def write_hyperparams_table(all_files, grid_dir="analysis/grid_search"):
+
+    # Combine the results from all grid search result files
+    raw_data = []
+    for filename in all_files:
+        with open(filename, "r") as f:
+            file_data = json.load(f)
+            # Handle deprected nested listed structure
+            if isinstance(file_data[0], list):
+                file_data = file_data[0]
+            raw_data.append(file_data)
+    data = [item for sublist in raw_data for item in sublist]
+
+    df = pd.DataFrame(data)
+    # Handle deprecated input format
+    if pd.api.types.is_string_dtype(df["loss"]):
+        df.drop(columns=["loss"], inplace=True)
+        df.rename(columns={"cv_loss": "loss"}, inplace=True)
+
+    # Create normalised loss, accuracy, and f1_macro
+    loss_norm = (df["loss"] - df["loss"].mean()) / df["loss"].std()
+    acc_norm = (df["accuracy"] - df["accuracy"].mean()) / df["accuracy"].std()
+    f1_macro_norm = (df["f1_macro"] - df["f1_macro"].mean()) / df["f1_macro"].std()
+
+    df = df.sort_values("loss", ascending=True, ignore_index=True)
+    df = df[
+        [
+            "batch_size",
+            "num_epochs",
+            "learning_rate",
+            "weight_decay",
+            "momentum",
+            "num_hidden",
+            "hidden_size",
+            "dropout_rate",
+            "batch_normalisation",
+            "loss",
+            "accuracy",
+            "f1_macro",
+        ]
+    ]
+    df = df.rename(
+        columns={
+            "batch_size": "b_size",
+            "num_epochs": "epochs",
+            "learning_rate": "lr",
+            "weight_decay": "wd",
+            "momentum": "mom",
+            "num_hidden": "n_h",
+            "hidden_size": "h_size",
+            "dropout_rate": "drp",
+            "batch_normalisation": "bn",
+            "loss": "loss",
+            "accuracy": "acc",
+            "f1_macro": "f1",
+        }
+    )
+    df.index += 1
+    df["loss"] = df["loss"].round(4)
+    df[["acc", "f1"]] = df[["acc", "f1"]].round(3)
+    df["bn"] = df["bn"].map({False: "N", True: "Y"})
+
+    print(df.head(20))
+
+    # Make the gridsearch dir if it doesn't exist
+    if not os.path.exists(grid_dir):
+        os.makedirs(grid_dir)
+
+    # Save the top 15 values to a latex table
+    with open(f"{grid_dir}/hyperparam_table.text", "w") as f:
+        f.write(df[:15].to_latex(index=True))

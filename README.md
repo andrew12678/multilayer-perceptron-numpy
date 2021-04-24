@@ -62,7 +62,7 @@ python3 main.py -kf 1 -pe 1 -hy params-best
 ```
 #### To generate a model performance table after a (set of) grid search, run:
 ```
-python3 analysis/hyperparam_plots.py -rf [set of results files]
+python3 main.py -gf [set of results files]
 ```
 where [set of results files] can be one or more grid search result json files from _results/_.
 
@@ -72,7 +72,7 @@ where [set of results files] can be one or more grid search result json files fr
 ROOT/
 ├── analysis
 │   ├── ablations
-│   ├── hyperparam_plots.py
+│   ├── grid_search
 │   ├── learning_curves
 │   └── losses
 ├── data
@@ -99,14 +99,14 @@ ROOT/
     ├── layers
     │   ├── batch_norm.py
     │   ├── layer.py
-    │   ├── linear.py
+    │   └── linear.py
     ├── loss
     │   ├── cross_entropy.py
     │   ├── __init__.py
     │   ├── loss.py
-    │   ├── mean_square_error.py
+    │   └── mean_square_error.py
     ├── network
-    │   ├── mlp.py
+    │   └── mlp.py
     ├── optimiser
     │   ├── adadelta.py
     │   ├── adagrad.py
@@ -122,8 +122,7 @@ ROOT/
         ├── helpers.py
         ├── io.py
         ├── metrics.py
-        ├── ml.py
-
+        └── ml.py
   ```
 
   

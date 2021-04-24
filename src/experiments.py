@@ -277,6 +277,7 @@ def kfolds_experiment_verbose(args):
             epoch_losses[epoch][col] /= len(splits)
     return epoch_losses
 
+
 def get_learning_curve_data(
     args, hyperparams, X_train, y_train, lc_dir="analysis/learning_curves"
 ):
@@ -321,6 +322,7 @@ def get_learning_curve_data(
 
     # Return training and validation results
     return data
+
 
 def get_ablation_data(
     args,
@@ -374,9 +376,7 @@ def get_ablation_data(
             new_hyperparams["batch_size"] = 1
 
         # Run kfolds and train/test
-        cv_summary = run_kfolds(
-            args, [new_hyperparams], X_train, y_train, write=False
-        )
+        cv_summary = run_kfolds(args, [new_hyperparams], X_train, y_train, write=False)
 
         # Start the timer to measure the training time
         start_time = time.time()

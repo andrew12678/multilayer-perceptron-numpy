@@ -73,8 +73,17 @@ def arg_parser():
         type=str,
         help="Name of file with saved ablation results",
     )
+    parser.add_argument(
+        "-gf",
+        "--grid_files",
+        nargs="+",
+        default="results/test.json",
+        type=str,
+        help="Result files from cross validation experiments (one or multiple)",
+    )
     args = parser.parse_args()
     return args
+
 
 # Run script
 if __name__ == "__main__":
@@ -147,6 +156,10 @@ if __name__ == "__main__":
                 args, hyperparams, X_train, y_train, X_test, y_test
             )
         plotting.plot_ablation(losses)
+
+    # Create latex tables presenting results of grid search
+    elif args.grid_files:
+        plotting.write_hyperparams_table(args.grid_files)
 
     # Run a basic train/test model if no other experiments selected
     else:
