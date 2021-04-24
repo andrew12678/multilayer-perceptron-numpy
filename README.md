@@ -19,8 +19,6 @@ If you install new packages please use `pip list --format freeze > requirements.
 
 Code is auto-formatted using `black`: installation instructions for IDEs: https://black.readthedocs.io/en/stable/editor_integration.html
 
-Docstrings are Google style  
-
 ## Running the code
 Note that the below commands will run the best model, which corresponds to _params-best_ in _hyperparams/config.yml_. To run another model, replace _params-best_ with another model name in _hyperparams/config.yml_.
 
