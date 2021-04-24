@@ -10,7 +10,9 @@ from datetime import datetime
 from src.utils import experiments as exps
 
 
-def get_learning_curve_data(args, hyperparams, X_train, y_train, lc_dir="analysis/learning_curves"):
+def get_learning_curve_data(
+    args, hyperparams, X_train, y_train, lc_dir="analysis/learning_curves"
+):
 
     # Randomly shuffle all data
     idxs = list(range(len(X_train)))
@@ -103,9 +105,7 @@ def plot_model_over_time(losses, args):
     plt.legend(loc="upper center", bbox_to_anchor=(0.5, 1.05))
     plt.xlabel("Number of epochs")
     # plt.ylabel("Accuracy")
-    plt.savefig(
-        f"{lc_dir}/accuracy_f1_{args.hyperparams}_{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
-    )
+    plt.savefig(f"{lc_dir}/accuracy_f1_{datetime.now().strftime('%Y%m%d%H%M%S')}.png")
 
     plt.figure()
     plt.style.use("ggplot")
@@ -114,12 +114,18 @@ def plot_model_over_time(losses, args):
     plt.legend(loc="upper center", bbox_to_anchor=(0.5, 1.05))
     plt.xlabel("Number of epochs")
     plt.ylabel("Cross Entropy Loss")
-    plt.savefig(
-        f"{lc_dir}/ce_{args.hyperparams}_{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
-    )
+    plt.savefig(f"{lc_dir}/ce_{datetime.now().strftime('%Y%m%d%H%M%S')}.png")
 
 
-def get_ablation_data(args, hyperparams, X_train, y_train, X_test, y_test, ablation_dir="analysis/ablations"):
+def get_ablation_data(
+    args,
+    hyperparams,
+    X_train,
+    y_train,
+    X_test,
+    y_test,
+    ablation_dir="analysis/ablations",
+):
 
     """
     Performs and ablation analysis
@@ -163,7 +169,9 @@ def get_ablation_data(args, hyperparams, X_train, y_train, X_test, y_test, ablat
             new_hyperparams["batch_size"] = 1
 
         # Run kfolds and train/test
-        cv_summary = exps.run_kfolds(args, [new_hyperparams], X_train, y_train, write=False)
+        cv_summary = exps.run_kfolds(
+            args, [new_hyperparams], X_train, y_train, write=False
+        )
 
         # Start the timer to measure the training time
         start_time = time.time()
@@ -192,7 +200,7 @@ def get_ablation_data(args, hyperparams, X_train, y_train, X_test, y_test, ablat
     return losses
 
 
-def plot_ablation(data, ablation_dir = "analysis/ablations"):
+def plot_ablation(data, ablation_dir="analysis/ablations"):
 
     """Plot ablation tables"""
 
@@ -214,6 +222,7 @@ def plot_ablation(data, ablation_dir = "analysis/ablations"):
     # Transpose to make multi row instead of multi column
     ablation_df = ablation_df.T
     ablation_df["Time"] = ablation_df["Time"].astype(int)
+    ablation_df = ablation_df.rename(columns={"Time": "Time(s)"})
 
     # Make the plot dir if it doesn't exist
     if not os.path.exists(ablation_dir):
@@ -226,6 +235,7 @@ def plot_ablation(data, ablation_dir = "analysis/ablations"):
         sub_df["Val"] = ablation_df["Val"].apply(lambda x: x.get(metric))
         sub_df["Test"] = ablation_df["Test"].apply(lambda x: x.get(metric))
 
+        sub_df = sub_df.round(3)
         # We plot a separate table for the SGD vs batched experiment run with 10 epochs
         SGD_df = sub_df.loc[:"No batchnorm"]
         BatchGD_df = sub_df.loc["Batched":]
