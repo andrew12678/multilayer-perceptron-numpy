@@ -74,18 +74,18 @@ def plot_ablation(data, ablation_dir="analysis/ablations"):
     # Create dataframe of metric data
     ablation_df = pd.DataFrame(data)
     ablation_df = ablation_df.round(3)
-    ablation_df = ablation_df.rename(
-        columns={
-            "Without activations": "No activations",
-            "With weight_decay=0.001": "wd=0.001",
-            "Without momentum": "No momentum",
-            "Without hidden layers": "No hidden layers",
-            "Without dropout": "No dropout",
-            "Without batchnorm": "No batchnorm",
-            "Batched 10 epochs": "Batched",
-            "SGD 10 epochs": "SGD",
-        }
-    )
+    #ablation_df = ablation_df.rename(
+        #columns={
+            #"Without activations": "No activations",
+            #"With weight_decay=0.001": "wd=0.001",
+            #"Without momentum": "No momentum",
+            #"Without hidden layers": "No hidden layers",
+            #"Without dropout": "No dropout",
+            #"Without batchnorm": "No batchnorm",
+            #"Batched 10 epochs": "Batched",
+            #"SGD 10 epochs": "SGD",
+        #}
+    #)
     # Transpose to make multi row instead of multi column
     ablation_df = ablation_df.T
     ablation_df["Time"] = ablation_df["Time"].astype(int)

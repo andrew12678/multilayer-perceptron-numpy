@@ -344,14 +344,14 @@ def get_ablation_data(
     # Create dict to keep track of ablation losses and execution time
     cols = [
         "Best model",
-        "Without activations",
-        "With weight_decay=0.001",
-        "Without momentum",
-        "Without hidden layers",
-        "Without dropout",
-        "Without batchnorm",
-        "Batched 10 epochs",
-        "SGD 10 epochs",
+        #"Without activations",
+        #"With weight_decay=0.001",
+        #"Without momentum",
+        #"Without hidden layers",
+        #"Without dropout",
+        #"Without batchnorm",
+        #"Batched 10 epochs",
+        #"SGD 10 epochs",
     ]
 
     losses = {k: {} for k in cols}
