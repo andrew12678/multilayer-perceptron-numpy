@@ -77,7 +77,6 @@ def arg_parser():
         "-gf",
         "--grid_files",
         nargs="+",
-        default="results/test.json",
         type=str,
         help="Result files from cross validation experiments (one or multiple)",
     )
