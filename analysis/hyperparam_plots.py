@@ -80,7 +80,11 @@ def combine_results(all_files):
     data = []
     for filename in all_files:
         with open(filename, "r") as f:
-            data.append(json.load(f)[0])
+            file_data = json.load(f)
+            # Handle deprected nested listed structure
+            if isinstance(file_data[0], list):
+                file_data = file_data[0]
+            data.append(file_data)
     flat_data = [item for sublist in data for item in sublist]
     return flat_data
 

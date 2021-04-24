@@ -3,79 +3,12 @@ from datetime import datetime
 from multiprocessing import Pool
 import json
 import os
-import argparse
+from datetime import datetime
+import time
 
 from src.trainer.trainer import Trainer
 from src.network.mlp import MLP
 from src.utils.ml import create_stratified_kfolds, create_layer_sizes
-
-
-def arg_parser():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "-c",
-        "--config",
-        default="hyperparams/config.yml",
-        type=str,
-        help="Config file for the experiment",
-    )
-    parser.add_argument(
-        "-hy",
-        "--hyperparams",
-        default="params1",
-        type=str,
-        help="Name of hyperparameter set",
-    )
-    parser.add_argument(
-        "-p", "--processes", default=1, type=int, help="If > 1 then use multiprocessing"
-    )
-    parser.add_argument(
-        "-kf", "--kfolds", default=0, type=int, help="Whether to run kfolds validation"
-    )
-    parser.add_argument(
-        "-s", "--seed", default=42, type=int, help="Random seed used for experiment"
-    )
-    parser.add_argument(
-        "-pe",
-        "--plot_errors",
-        default=0,
-        type=int,
-        help="Whether to plot model cross validation errors over time",
-    )
-    parser.add_argument(
-        "-ef",
-        "--error_file",
-        type=str,
-        help="Name of file with saved kfolds data for plotting errors",
-    )
-    parser.add_argument(
-        "-lc",
-        "--learning_curves",
-        default=0,
-        type=int,
-        help="Whether to plot learning curves",
-    )
-    parser.add_argument(
-        "-lcf",
-        "--learning_curves_file",
-        type=str,
-        help="Name of file with saved data for learning curves",
-    )
-    parser.add_argument(
-        "-a",
-        "--ablation",
-        default=0,
-        type=int,
-        help="Whether to plot ablation analysis",
-    )
-    parser.add_argument(
-        "-af",
-        "--ablation_file",
-        type=str,
-        help="Name of file with saved ablation results",
-    )
-    args = parser.parse_args()
-    return args
 
 
 def run_basic(args, hyperparams, X_train, y_train, X_test, y_test, save=False):
@@ -343,3 +276,130 @@ def kfolds_experiment_verbose(args):
         for epoch in epochs:
             epoch_losses[epoch][col] /= len(splits)
     return epoch_losses
+
+def get_learning_curve_data(
+    args, hyperparams, X_train, y_train, lc_dir="analysis/learning_curves"
+):
+
+    # Randomly shuffle all data
+    idxs = list(range(len(X_train)))
+    np.random.shuffle(idxs)
+    X_train_shuffled = X_train[idxs]
+    y_train_shuffled = y_train[idxs]
+
+    train_losses = []
+    cv_losses = []
+    increment = 5000
+
+    # Number of examples to increase for each datapoint (e.g. 5000 -> 5000, 10000, ..., 50000)
+    num_examples = list(range(increment, len(X_train) + 1, increment))
+
+    # loop through samples and extract metrics
+    for i in num_examples:
+        X = X_train_shuffled[:i]
+        y = y_train_shuffled[:i]
+        summary = run_kfolds(args, hyperparams, X, y, write=False)
+        train_losses.append(summary[0]["train_loss"])
+        cv_losses.append(summary[0]["cv_loss"])
+
+    data = {
+        "num_examples": num_examples,
+        "train_losses": train_losses,
+        "cv_losses": cv_losses,
+    }
+
+    # Make the learning curve directory if it doesn't exist
+    if not os.path.exists(lc_dir):
+        os.makedirs(lc_dir)
+
+    # Write results to file
+    with open(
+        f"{lc_dir}/{args.hyperparams}_{datetime.now().strftime('%Y%m%d%H%M%S')}.json",
+        "w",
+    ) as f:
+        json.dump(data, f)
+
+    # Return training and validation results
+    return data
+
+def get_ablation_data(
+    args,
+    hyperparams,
+    X_train,
+    y_train,
+    X_test,
+    y_test,
+    ablation_dir="analysis/ablations",
+):
+
+    """
+    Performs and ablation analysis
+    """
+
+    # We assume that hyperparams is a list of length 1 to run this function
+    hyperparams = hyperparams[0]
+
+    # Create dict to keep track of ablation losses and execution time
+    cols = [
+        "Best model",
+        "Without activations",
+        "With weight_decay=0.001",
+        "Without momentum",
+        "Without hidden layers",
+        "Without dropout",
+        "Without batchnorm",
+        "Batched 10 epochs",
+        "SGD 10 epochs",
+    ]
+
+    losses = {k: {} for k in cols}
+    for col in cols:
+        new_hyperparams = hyperparams.copy()
+        if col == "With weight_decay=0.001":
+            new_hyperparams["weight_decay"] = 0.001
+        elif col == "Without activations":
+            new_hyperparams["activation"] = None
+        elif col == "Without momentum":
+            new_hyperparams["momentum"] = 0
+        elif col == "Without hidden layers":
+            new_hyperparams["num_hidden"] = 0
+        elif col == "Without dropout":
+            new_hyperparams["dropout_rate"] = 0
+        elif col == "Without batchnorm":
+            new_hyperparams["batch_normalisation"] = False
+        elif col == "Batched 10 epochs":
+            new_hyperparams["num_epochs"] = 10
+        elif col == "SGD 10 epochs":
+            new_hyperparams["num_epochs"] = 10
+            new_hyperparams["batch_size"] = 1
+
+        # Run kfolds and train/test
+        cv_summary = run_kfolds(
+            args, [new_hyperparams], X_train, y_train, write=False
+        )
+
+        # Start the timer to measure the training time
+        start_time = time.time()
+        train_summary, test_summary, _ = run_basic(
+            args, [new_hyperparams], X_train, y_train, X_test, y_test
+        )
+        losses[col]["Time"] = time.time() - start_time
+        losses[col]["Train"] = train_summary
+        losses[col]["Val"] = {
+            "loss": cv_summary[0]["cv_loss"],
+            "accuracy": cv_summary[0]["accuracy"],
+            "f1_macro": cv_summary[0]["f1_macro"],
+        }
+        losses[col]["Test"] = test_summary
+
+    # Make the plot dir if it doesn't exist
+    if not os.path.exists(ablation_dir):
+        os.makedirs(ablation_dir)
+
+    with open(
+        f"{ablation_dir}/{args.hyperparams}_{datetime.now().strftime('%Y%m%d%H%M%S')}.json",
+        "w",
+    ) as f:
+        json.dump(losses, f)
+
+    return losses

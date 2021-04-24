@@ -13,7 +13,7 @@ The general model design can be seen below (for the assumed 128-input and 10-out
 
 Python Version: `python=3.8`
 
-Dependencies are stored in `requirements.txt`. 
+Dependencies are stored in `requirements.txt`. To install them, run `pip install -r requirements.txt`.
 
 If you install new packages please use `pip list --format freeze > requirements.txt` to replace the file.
 
@@ -34,35 +34,35 @@ Please import the following files to the "data" folder in the root directory:
 
 #### To run the best model on the entire training set and test on the test set, run:
 ```
-python main.py -hy params-best
+python3 main.py -hy params-best
 ```
 The above command takes ~22 minutes on a machine with 12 cores.
 
 #### To create learning curves for the best model, run:
 ```
-python main.py -lc 1 -hy params-best
+python3 main.py -lc 1 -hy params-best
 ```
 #### To run the complete ablation studies for the best model, run:
 ```
-python main.py -a 1 -hy params-best
+python3 main.py -a 1 -hy params-best
 ```
 #### For 5-folds stratified cross validation with the best model, run:
 ```
-python main.py -hy params-best -kf 1 -p [number of processors to use]
+python3 main.py -hy params-best -kf 1 -p [number of processors to use]
 ```
 #### To find the best model using a grid-search with 5-folds cross validation, run:
 ```
-python main.py -hy grid-search1 -kf 1 -p [number of processors to use]
+python3 main.py -hy grid-search1 -kf 1 -p [number of processors to use]
 ```
 where _grid-search1_ represents the hyperparameter values to search over, defined in _hyperparams/config.yml_.
 
 #### To plot the best model train and validation errors with respect to the number of epochs, run:
 ```
-python main.py -kf 1 -pe 1 -hy params-best
+python3 main.py -kf 1 -pe 1 -hy params-best
 ```
 #### To generate a model performance table after a (set of) grid search, run:
 ```
-python analysis/hyperparam_plots.py -rf [set of results files]
+python3 analysis/hyperparam_plots.py -rf [set of results files]
 ```
 where [set of results files] can be one or more grid search result json files from _results/_.
 

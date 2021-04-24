@@ -53,3 +53,17 @@ grid-search2:
     activation: ["relu"]
     dropout_rate: [0.3, 0.5]
     batch_normalisation: [True]
+
+grid-search-test:
+    loss: ["cross_entropy"]
+    optimiser: ["sgd"]
+    batch_size: [64]
+    num_epochs: [5]
+    learning_rate: [0.1]
+    weight_decay: [0]
+    momentum: [0]
+    num_hidden: [1]
+    hidden_size: [4, 8]
+    activation: ["relu"]
+    dropout_rate: [0]
+    batch_normalisation: [False]
