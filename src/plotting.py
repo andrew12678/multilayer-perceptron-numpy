@@ -7,7 +7,7 @@ import os
 import json
 from datetime import datetime
 
-from src.utils import experiments as exps
+from src import experiments as exps
 
 
 def get_learning_curve_data(

@@ -146,15 +146,15 @@ def run_basic(args, hyperparams, X_train, y_train, X_test, y_test, save=False):
 
     # Check if losses are to be saved
     if save:
-        losses_dir = "analysis/losses"
+        results_dir = "results/"
 
         # Make the losses dir if it doesn't exist
-        if not os.path.exists(losses_dir):
-            os.makedirs(losses_dir)
+        if not os.path.exists(results_dir):
+            os.makedirs(results_dir)
 
         # Write to file
         with open(
-            f"{losses_dir}/{args.hyperparams}_{datetime.now().strftime('%Y%m%d%H%M%S')}.json",
+            f"{results_dir}/{args.hyperparams}_{datetime.now().strftime('%Y%m%d%H%M%S')}.json",
             "w",
         ) as f:
             json.dump(losses, f)

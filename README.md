@@ -26,7 +26,7 @@ Note that the below commands will run the best model, which corresponds to _para
 
 ### Prepare Data
 
-Please create a "data" folder in the root directory, and import the following files:
+Please import the following files to the "data" folder in the root directory:
 1. test_data.npy 
 2. test_label.npy 
 3. train_data.npy 
@@ -70,41 +70,59 @@ where [set of results files] can be one or more grid search result json files fr
 
 ```
 ROOT/
-├── hyperparams/ - YAML files for our experiment config
-│ └── config.yml
-├── main.py - main file for running our experiments
-├── requirements.txt - requirements for our project
-└── src/ - source code for our MLP implementation
-    ├── activation/ - directory for our activations
-    │ ├── activation.py - base case for activation
-    │ ├── leaky_relu.py - leaky ReLU activation function
-    │ ├── logistic.py - logistic activation function
-    │ ├── relu.py - ReLU activation function
-    │ └── tanh.py - tanh activation function
-    ├── layers/ - directory for our layers
-    │ ├── layer.py - base class for layers
-    │ ├── batch_norm.py - BatchNorm layer
-    │ └── linear.py - Linear layer
-    ├── loss/ - directory for our loss functions
-    │ ├── loss.py - base class for loss functions
-    │ ├── cross_entropy.py - cross entropy loss
-    │ └── mean_square_error.py - MSE loss
-    ├── network/ - directory for our NN
-    │ └── mlp.py - MLP class
-    ├── optimiser/ - directory for our optimisers
-    │ ├── optimiser.py - base class for optimisers
-    │ ├── adagrad.py - AgaGrad optimiser
-    │ ├── adam.py - ADAM optimiser
-    │ ├── adadelta.py - AdaDelta optimiser
-    │ └── sgd.py - SGD optimiser (handles momentum interally)
-    ├── trainer/ - directory for our Trainer object
-    │ └── trainer.py
-    └── utils/ - misc utils 
-        ├── calculations.py - mainly mathematical computations
-        ├── helpers.py - object initialisers
-        ├── io.py - input output
-        ├── metrics.py - ML metrics 
-        └── ml.py - other ML related tasks
+├── analysis
+│   ├── ablations
+│   ├── hyperparam_plots.py
+│   ├── learning_curves
+│   └── losses
+├── data
+│   ├── test_data.npy
+│   ├── test_label.npy
+│   ├── train_data.npy
+│   └── train_label.npy
+├── hyperparams
+│   └── config.yml
+├── main.py
+├── Model_Architecture.png
+├── README.md
+├── requirements.txt
+├── results
+└── src
+    ├── activation
+    │   ├── activation.py
+    │   ├── __init__.py
+    │   ├── leaky_relu.py
+    │   ├── logistic.py
+    │   ├── relu.py
+    │   └── tanh.py
+    ├── experiments.py
+    ├── layers
+    │   ├── batch_norm.py
+    │   ├── layer.py
+    │   ├── linear.py
+    ├── loss
+    │   ├── cross_entropy.py
+    │   ├── __init__.py
+    │   ├── loss.py
+    │   ├── mean_square_error.py
+    ├── network
+    │   ├── mlp.py
+    ├── optimiser
+    │   ├── adadelta.py
+    │   ├── adagrad.py
+    │   ├── adam.py
+    │   ├── __init__.py
+    │   ├── optimiser.py
+    │   └── sgd.py
+    ├── plotting.py
+    ├── trainer
+    │   └── trainer.py
+    └── utils
+        ├── calculations.py
+        ├── helpers.py
+        ├── io.py
+        ├── metrics.py
+        ├── ml.py
 
   ```
 

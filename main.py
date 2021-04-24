@@ -5,8 +5,8 @@ import json
 import numpy as np
 
 from src.utils.io import load_directory
-from src.utils import plotting
-from src.utils import experiments as exps
+from src import plotting
+from src import experiments as exps
 
 
 # Run script

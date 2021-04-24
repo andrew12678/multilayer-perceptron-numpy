@@ -7,7 +7,7 @@ import pandas as pd
 def write_hyperparams_table(data):
 
     df = pd.DataFrame(data)
-    # Handle deprecated results
+    # Handle deprecated input format
     if pd.api.types.is_string_dtype(df["loss"]):
         df.drop(columns=["loss"], inplace=True)
         df.rename(columns={"cv_loss": "loss"}, inplace=True)
@@ -92,8 +92,5 @@ if __name__ == "__main__":
 
     data = combine_results(args.result_files)
     write_hyperparams_table(data)
-
-    # Set a random seed to reproduce results
-    # np.random.seed(args.seed)
 
     print("Run time: ", time.time() - start_time)
