@@ -104,7 +104,7 @@ def plot_model_over_time(losses, args):
     plt.xlabel("Number of epochs")
     # plt.ylabel("Accuracy")
     plt.savefig(
-        f"{lc_dir}/accuracy_f1_{args.hyperparams}_{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
+        f"{lc_dir}/accuracy_f1_{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
     )
 
     plt.figure()
@@ -115,7 +115,7 @@ def plot_model_over_time(losses, args):
     plt.xlabel("Number of epochs")
     plt.ylabel("Cross Entropy Loss")
     plt.savefig(
-        f"{lc_dir}/ce_{args.hyperparams}_{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
+        f"{lc_dir}/ce_{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
     )
 
 
@@ -214,6 +214,7 @@ def plot_ablation(data, ablation_dir = "analysis/ablations"):
     # Transpose to make multi row instead of multi column
     ablation_df = ablation_df.T
     ablation_df["Time"] = ablation_df["Time"].astype(int)
+    ablation_df = ablation_df.rename(columns={"Time": "Time(s)"})
 
     # Make the plot dir if it doesn't exist
     if not os.path.exists(ablation_dir):
@@ -226,6 +227,7 @@ def plot_ablation(data, ablation_dir = "analysis/ablations"):
         sub_df["Val"] = ablation_df["Val"].apply(lambda x: x.get(metric))
         sub_df["Test"] = ablation_df["Test"].apply(lambda x: x.get(metric))
 
+        sub_df = sub_df.round(3)
         # We plot a separate table for the SGD vs batched experiment run with 10 epochs
         SGD_df = sub_df.loc[:"No batchnorm"]
         BatchGD_df = sub_df.loc["Batched":]

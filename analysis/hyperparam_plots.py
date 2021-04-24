@@ -5,7 +5,13 @@ import pandas as pd
 
 
 def write_hyperparams_table(data):
+
     df = pd.DataFrame(data)
+    # Handle deprecated results
+    if pd.api.types.is_string_dtype(df["loss"]):
+        df.drop(columns=["loss"], inplace=True)
+        df.rename(columns={"cv_loss": "loss"}, inplace=True)
+
     # Create normalised loss, accuracy, and f1_macro
     loss_norm = (df["loss"] - df["loss"].mean()) / df["loss"].std()
     acc_norm = (df["accuracy"] - df["accuracy"].mean()) / df["accuracy"].std()
@@ -52,7 +58,7 @@ def write_hyperparams_table(data):
     print(df.head(30))
     # Save the top 15 values to a latex table
     # Note that we overwrite the top 3 values with values obtained without multiprocessing.
-    with open("analysis/hyperparam_table1.text", "w") as f:
+    with open("analysis/hyperparam_table.text", "w") as f:
         f.write(df[:15].to_latex(index=True))
 
 
