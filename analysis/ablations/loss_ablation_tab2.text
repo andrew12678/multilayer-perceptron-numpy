@@ -1,0 +1,8 @@
+\begin{tabular}{lrrrr}
+\toprule
+{} &  Time(s) &  Train &    Val &   Test \\
+\midrule
+Batched &       45 &  0.111 &  0.128 &  0.125 \\
+SGD     &     1988 &  1.862 &  1.859 &  1.866 \\
+\bottomrule
+\end{tabular}
