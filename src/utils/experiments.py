@@ -343,5 +343,3 @@ def kfolds_experiment_verbose(args):
         for epoch in epochs:
             epoch_losses[epoch][col] /= len(splits)
     return epoch_losses
-
-

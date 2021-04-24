@@ -129,7 +129,7 @@ class Trainer:
 
             # Kill the training if our recent_loss is nan
             if np.isnan(epoch_loss):
-                print(f'Epoch {epoch}: {np.nan}, Training Terminated.')
+                print(f"Epoch {epoch}: {np.nan}, Training Terminated.")
                 break
 
         # Return training loss (and test losses if user provided test data)
