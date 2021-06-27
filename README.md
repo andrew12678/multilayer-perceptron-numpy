@@ -1,6 +1,6 @@
-# comp5329-assignment1
+# multilayer-perceptron-numpy
 
-Welcome to our assignment, we made it our goal to have a clear OOP setup for our implemention of the MLP.
+Welcome, we made it our goal to have a clear OOP setup for our implemention of the MLP.
  
 For experimentation, we have implemented YAML files to change configurations.
 
